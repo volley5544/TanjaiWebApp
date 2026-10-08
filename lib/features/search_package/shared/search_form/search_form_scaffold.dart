@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_scaffold.dart';
+import '../../../../core/widgets/page_loading_view.dart';
 
 /// Page frame of the FF SearchInsurancePage: white AppBar with back arrow,
 /// scrollable form (flex 10) and the bottom 'ค้นหา' bar (flex 2).
@@ -17,6 +18,7 @@ class SearchFormScaffold extends StatelessWidget {
     required this.onBack,
     required this.onSearch,
     required this.sections,
+    this.loading = false,
   });
 
   final String title;
@@ -26,6 +28,10 @@ class SearchFormScaffold extends StatelessWidget {
   /// Form sections, shown with 8px gaps (20 above, 36 below).
   final List<Widget> sections;
 
+  /// While the page loads its master data: white body with a spinner instead
+  /// of the form (see [PageLoadingView]).
+  final bool loading;
+
   @override
   Widget build(BuildContext context) {
     return UnfocusOnTap(
@@ -34,45 +40,47 @@ class SearchFormScaffold extends StatelessWidget {
         child: Scaffold(
           backgroundColor: AppColors.secondaryBackground,
           appBar: tanjaiAppBar(title: title, onBack: onBack),
-          body: SafeArea(
-            bottom: false,
-            child: Column(
-              children: [
-                Expanded(
-                  flex: 10,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 20),
-                        for (var i = 0; i < sections.length; i++) ...[
-                          if (i > 0) const SizedBox(height: 8),
-                          sections[i],
-                        ],
-                        const SizedBox(height: 36),
-                      ],
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Container(
-                    width: double.infinity,
-                    color: AppColors.secondaryBackground,
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 16),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: AppButton(text: 'ค้นหา', onPressed: onSearch),
+          body: loading
+              ? const PageLoadingView(message: 'กำลังโหลดข้อมูล...')
+              : SafeArea(
+                  bottom: false,
+                  child: Column(
+                    children: [
+                      Expanded(
+                        flex: 10,
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 20),
+                              for (var i = 0; i < sections.length; i++) ...[
+                                if (i > 0) const SizedBox(height: 8),
+                                sections[i],
+                              ],
+                              const SizedBox(height: 36),
+                            ],
+                          ),
                         ),
-                      ],
-                    ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Container(
+                          width: double.infinity,
+                          color: AppColors.secondaryBackground,
+                          child: Column(
+                            children: [
+                              const SizedBox(height: 16),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                child: AppButton(text: 'ค้นหา', onPressed: onSearch),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
         ),
       ),
     );

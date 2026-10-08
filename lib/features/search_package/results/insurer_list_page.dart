@@ -5,7 +5,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/ff_functions.dart';
 import '../../../core/widgets/app_dialogs.dart';
 import '../../../core/widgets/app_scaffold.dart';
-import '../../../core/widgets/loading_scene.dart';
+import '../../../core/widgets/page_loading_view.dart';
 import '../../../router/app_router.dart';
 import '../data/search_package_api.dart';
 import '../models/insurance_package.dart';
@@ -36,6 +36,9 @@ class _InsurerListPageState extends State<InsurerListPage> {
   /// MC success check of LIST_OK (`total != 0 && code == 200 && status == 200`).
   bool _mcOk = false;
   List<String> _installment = const [];
+
+  /// Initial MC `get_package_mc` call in progress: white page + spinner.
+  late bool _loading = _isMc;
 
   @override
   void initState() {
@@ -68,7 +71,8 @@ class _InsurerListPageState extends State<InsurerListPage> {
     final s = _state;
     final c = s.criteria!;
     s
-      ..result = null // FF cleared every search* list first
+      ..result =
+          null // FF cleared every search* list first
       ..compareSelection = []
       ..quotationSaved = false
       ..grossPage3 = RangeFilter(boundMin: 1000, boundMax: 10000)
@@ -77,21 +81,19 @@ class _InsurerListPageState extends State<InsurerListPage> {
       ..filterGarageTypes = []
       ..notify();
 
-    final r = await withLoading(
-      context,
-      () => SearchPackageApi.instance.searchPackagesMc(
-        brandCode: c.brandCode,
-        year: c.yearCE,
-        modelCode: c.modelCode,
-        province: c.province,
-        vehicleUsage: c.vehicleUsage,
-        coverTypeList: c.coverType,
-        garageTypeList: c.garageType,
-        nationalThaiId: c.idCard,
-        customerType: c.customerType,
-      ),
+    final r = await SearchPackageApi.instance.searchPackagesMc(
+      brandCode: c.brandCode,
+      year: c.yearCE,
+      modelCode: c.modelCode,
+      province: c.province,
+      vehicleUsage: c.vehicleUsage,
+      coverTypeList: c.coverType,
+      garageTypeList: c.garageType,
+      nationalThaiId: c.idCard,
+      customerType: c.customerType,
     );
     if (!mounted) return;
+    setState(() => _loading = false);
     if (r.statusCode != 200) {
       await showAlert(context, httpErrorText(r.statusCode));
       return;
@@ -203,85 +205,87 @@ class _InsurerListPageState extends State<InsurerListPage> {
         child: Scaffold(
           backgroundColor: AppColors.primaryBackground,
           appBar: resultAppBar(title: _isMc ? 'ค้นหาประกันมอเตอร์ไซค์' : 'ค้นหาประกันรถ', onBack: _back),
-          body: SafeArea(
-            child: ListenableBuilder(
-              listenable: _state,
-              builder: (context, _) {
-                final s = _state;
-                final listOk = _listOk;
-                return SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Fixed text: does not show the selected filter, no clear icon.
-                      ResultFilterBox(
-                        text: 'ค้นหาเปรียบเทียบบริษัทประกัน',
-                        extraLabel: '(เลือกเปรียบเทียบสูงสุด 3 รายการเท่านั้น)',
-                        onTap: _openFilter,
-                      ),
-                      RangeSummaryRows(
-                        firstTopPadding: 0,
-                        minGross: s.grossPage3.currentMin,
-                        maxGross: s.grossPage3.currentMax,
-                        minSum: s.sumInsuredPage3.currentMin,
-                        maxSum: s.sumInsuredPage3.currentMax,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Row(
+          body: _loading
+              ? const PageLoadingView(message: 'กำลังค้นหาแพ็กเกจประกัน...')
+              : SafeArea(
+                  child: ListenableBuilder(
+                    listenable: _state,
+                    builder: (context, _) {
+                      final s = _state;
+                      final listOk = _listOk;
+                      return SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Padding(
-                              padding: const EdgeInsets.only(left: 25),
-                              child: Text('เลือกได้สูงสุด 3 รายการ', style: AppText.style()),
+                            // Fixed text: does not show the selected filter, no clear icon.
+                            ResultFilterBox(
+                              text: 'ค้นหาเปรียบเทียบบริษัทประกัน',
+                              extraLabel: '(เลือกเปรียบเทียบสูงสุด 3 รายการเท่านั้น)',
+                              onTap: _openFilter,
+                            ),
+                            RangeSummaryRows(
+                              firstTopPadding: 0,
+                              minGross: s.grossPage3.currentMin,
+                              maxGross: s.grossPage3.currentMax,
+                              minSum: s.sumInsuredPage3.currentMin,
+                              maxSum: s.sumInsuredPage3.currentMax,
                             ),
                             Padding(
-                              padding: const EdgeInsets.only(left: 5),
-                              child: Text('($_selectedCount/ 3)', style: AppText.style(color: AppColors.error)),
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Row(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 25),
+                                    child: Text('เลือกได้สูงสุด 3 รายการ', style: AppText.style()),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 5),
+                                    child: Text('($_selectedCount/ 3)', style: AppText.style(color: AppColors.error)),
+                                  ),
+                                ],
+                              ),
                             ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 25),
+                              child: Text(
+                                '*หากไม่ขึ้นการ์ดแพ็คเกจ หมายถึงไม่มีแพ็คเกจจากค่าที่ฟิลเตอร์*',
+                                style: AppText.style(color: AppColors.error),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: SizedBox(
+                                height: screenH * 0.55,
+                                child: listOk
+                                    ? ListView.builder(
+                                        padding: const EdgeInsets.only(top: 4),
+                                        itemCount: s.packages.length,
+                                        itemBuilder: (context, i) {
+                                          final p = s.packages[i];
+                                          if (!_visible(p)) return const SizedBox.shrink();
+                                          return _PackageCard(
+                                            package: p,
+                                            selected: _isSelected(i),
+                                            installment: _installment,
+                                            onToggle: () => _toggle(i),
+                                            onDetail: () => _openDetail(p),
+                                          );
+                                        },
+                                      )
+                                    : const Align(
+                                        alignment: Alignment.topCenter,
+                                        child: ResultEmptyBox(text: 'ไม่พบข้อมูลรายการประกัน'),
+                                      ),
+                              ),
+                            ),
+                            if (listOk && _selectedCount >= 2) _CompareBar(onTap: _openCompare),
+                            if (!_isMc) NonRateRow(onPressed: _openNonRate),
                           ],
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 25),
-                        child: Text(
-                          '*หากไม่ขึ้นการ์ดแพ็คเกจ หมายถึงไม่มีแพ็คเกจจากค่าที่ฟิลเตอร์*',
-                          style: AppText.style(color: AppColors.error),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: SizedBox(
-                          height: screenH * 0.55,
-                          child: listOk
-                              ? ListView.builder(
-                                  padding: const EdgeInsets.only(top: 4),
-                                  itemCount: s.packages.length,
-                                  itemBuilder: (context, i) {
-                                    final p = s.packages[i];
-                                    if (!_visible(p)) return const SizedBox.shrink();
-                                    return _PackageCard(
-                                      package: p,
-                                      selected: _isSelected(i),
-                                      installment: _installment,
-                                      onToggle: () => _toggle(i),
-                                      onDetail: () => _openDetail(p),
-                                    );
-                                  },
-                                )
-                              : const Align(
-                                  alignment: Alignment.topCenter,
-                                  child: ResultEmptyBox(text: 'ไม่พบข้อมูลรายการประกัน'),
-                                ),
-                        ),
-                      ),
-                      if (listOk && _selectedCount >= 2) _CompareBar(onTap: _openCompare),
-                      if (!_isMc) NonRateRow(onPressed: _openNonRate),
-                    ],
+                      );
+                    },
                   ),
-                );
-              },
-            ),
-          ),
+                ),
         ),
       ),
     );
@@ -420,8 +424,10 @@ class _PackageCard extends StatelessWidget {
                                   ),
                                 if (p.motorAddOn != '')
                                   CardInfoRow(
-                                    label: Text('ประกันภัยเสริมรถยนต์ Motor Add-on',
-                                        style: AppText.style(fontSize: 10, color: AppColors.primary)),
+                                    label: Text(
+                                      'ประกันภัยเสริมรถยนต์ Motor Add-on',
+                                      style: AppText.style(fontSize: 10, color: AppColors.primary),
+                                    ),
                                     trailing: const Icon(Icons.check_circle, color: AppColors.secondary, size: 16),
                                   ),
                                 if (p.deductible != '0')

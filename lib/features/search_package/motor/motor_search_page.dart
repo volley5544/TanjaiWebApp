@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../core/utils/ff_functions.dart';
 import '../../../core/widgets/app_dialogs.dart';
-import '../../../core/widgets/loading_scene.dart';
 import '../product_type.dart';
 import '../shared/car_type_page.dart';
 import '../shared/search_form/expiry_date_section.dart';
@@ -22,6 +21,7 @@ class MotorSearchPage extends StatefulWidget {
 
 class _MotorSearchPageState extends State<MotorSearchPage> {
   final _controller = MotorSearchController();
+  bool _loading = true;
   bool _pickUpUsagesLoading = true;
 
   @override
@@ -36,8 +36,10 @@ class _MotorSearchPageState extends State<MotorSearchPage> {
   /// FF reloads all master data every time the page opens.
   Future<void> _onLoad() async {
     _controller.resetOnLoad();
-    final error = await withLoading(context, _controller.loadMasterData);
-    if (error != null && mounted) await showAlert(context, error);
+    final error = await _controller.loadMasterData();
+    if (!mounted) return;
+    setState(() => _loading = false);
+    if (error != null) await showAlert(context, error);
   }
 
   @override
@@ -48,6 +50,7 @@ class _MotorSearchPageState extends State<MotorSearchPage> {
       builder: (context, _) {
         final provinceName = state.selectedProvince?.nameTh ?? '';
         return SearchFormScaffold(
+          loading: _loading,
           title: ProductType.motor.searchTitle,
           onBack: () => _controller.back(context),
           onSearch: () => _controller.search(context),

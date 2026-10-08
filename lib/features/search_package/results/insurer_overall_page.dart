@@ -5,7 +5,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/ff_functions.dart';
 import '../../../core/widgets/app_dialogs.dart';
 import '../../../core/widgets/app_scaffold.dart';
-import '../../../core/widgets/loading_scene.dart';
+import '../../../core/widgets/page_loading_view.dart';
 import '../../../router/app_router.dart';
 import '../data/api_result.dart';
 import '../data/search_package_api.dart';
@@ -34,6 +34,9 @@ class _InsurerOverallPageState extends State<InsurerOverallPage> {
   ApiResult<PackageSearchResult>? _response;
   List<String> _installment = const [];
 
+  /// Initial `get_package` call in progress: white page + spinner.
+  bool _loading = true;
+
   // FF defaults of `listType1` / `listNonType1`.
   static const _listType1 = ['VMI1'];
   static const _listNonType1 = <String>[];
@@ -56,24 +59,24 @@ class _InsurerOverallPageState extends State<InsurerOverallPage> {
 
   Future<void> _load() async {
     final c = _state.criteria!;
-    final r = await withLoading(
-      context,
-      () => SearchPackageApi.instance.searchPackages(
-        brandCode: c.brandCode,
-        modelCode: c.modelCode,
-        year: c.yearCE,
-        vehicleUsage: c.vehicleUsage,
-        coverTypeList: c.coverType,
-        garageTypeList: c.garageType,
-        province: c.province,
-        driverBehaviorList: c.driverBehaviorScoreList,
-        driver: c.driverFlag,
-        nationalThaiId: c.idCard,
-        customerType: c.customerType,
-      ),
+    final r = await SearchPackageApi.instance.searchPackages(
+      brandCode: c.brandCode,
+      modelCode: c.modelCode,
+      year: c.yearCE,
+      vehicleUsage: c.vehicleUsage,
+      coverTypeList: c.coverType,
+      garageTypeList: c.garageType,
+      province: c.province,
+      driverBehaviorList: c.driverBehaviorScoreList,
+      driver: c.driverFlag,
+      nationalThaiId: c.idCard,
+      customerType: c.customerType,
     );
     if (!mounted) return;
-    setState(() => _response = r);
+    setState(() {
+      _loading = false;
+      _response = r;
+    });
     if (r.statusCode != 200) {
       await showAlert(context, httpErrorText(r.statusCode));
       return;
@@ -114,11 +117,25 @@ class _InsurerOverallPageState extends State<InsurerOverallPage> {
     final pk = s.packages;
     final shortNames = pk.map((p) => p.shortName).toList();
     final coverTypes = pk.map((p) => p.coverType).toList();
-    final priceOk = checkPackageInRangePage2Copy(shortNames, pk.map((p) => p.grossTotal).toList(),
-        ins.insurerShortName, '${s.grossPage2.currentMin}', '${s.grossPage2.currentMax}', ins.coverTypeList, coverTypes);
+    final priceOk = checkPackageInRangePage2Copy(
+      shortNames,
+      pk.map((p) => p.grossTotal).toList(),
+      ins.insurerShortName,
+      '${s.grossPage2.currentMin}',
+      '${s.grossPage2.currentMax}',
+      ins.coverTypeList,
+      coverTypes,
+    );
     if (!priceOk) return false;
-    return checkPackageInRangePage2Copy(shortNames, pk.map((p) => p.sumInsured).toList(), ins.insurerShortName,
-        '${s.sumInsuredPage2.currentMin}', '${s.sumInsuredPage2.currentMax}', ins.coverTypeList, coverTypes);
+    return checkPackageInRangePage2Copy(
+      shortNames,
+      pk.map((p) => p.sumInsured).toList(),
+      ins.insurerShortName,
+      '${s.sumInsuredPage2.currentMin}',
+      '${s.sumInsuredPage2.currentMax}',
+      ins.coverTypeList,
+      coverTypes,
+    );
   }
 
   Future<void> _openFilter() async {
@@ -159,65 +176,67 @@ class _InsurerOverallPageState extends State<InsurerOverallPage> {
         child: Scaffold(
           backgroundColor: AppColors.primaryBackground,
           appBar: resultAppBar(title: 'ค้นหาบริษัทประกัน', onBack: () => context.pop()),
-          body: SafeArea(
-            child: ListenableBuilder(
-              listenable: _state,
-              builder: (context, _) {
-                final s = _state;
-                return SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ResultFilterBox(
-                        text: s.filterInsurers.isNotEmpty ? s.filterInsurers.first : 'ค้นหาบริษัทประกัน',
-                        onTap: _openFilter,
-                        onClear: s.filterInsurers.isEmpty
-                            ? null
-                            : () => s
-                              ..filterInsurers = []
-                              ..notify(),
-                      ),
-                      RangeSummaryRows(
-                        minGross: s.grossPage2.currentMin,
-                        maxGross: s.grossPage2.currentMax,
-                        minSum: s.sumInsuredPage2.currentMin,
-                        maxSum: s.sumInsuredPage2.currentMax,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: SizedBox(
-                          height: screenH * 0.58,
-                          child: Column(
-                            children: [
-                              if (_listOk)
-                                Expanded(
-                                  child: ListView.builder(
-                                    padding: const EdgeInsets.only(top: 4),
-                                    itemCount: s.insurers.length,
-                                    itemBuilder: (context, i) {
-                                      final ins = s.insurers[i];
-                                      if (!_visible(ins)) return const SizedBox.shrink();
-                                      return _InsurerCard(
-                                        insurer: ins,
-                                        installment: _installment,
-                                        onDetail: () => _openInsurer(ins),
-                                      );
-                                    },
-                                  ),
+          body: _loading
+              ? const PageLoadingView(message: 'กำลังค้นหาแพ็กเกจประกัน...')
+              : SafeArea(
+                  child: ListenableBuilder(
+                    listenable: _state,
+                    builder: (context, _) {
+                      final s = _state;
+                      return SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ResultFilterBox(
+                              text: s.filterInsurers.isNotEmpty ? s.filterInsurers.first : 'ค้นหาบริษัทประกัน',
+                              onTap: _openFilter,
+                              onClear: s.filterInsurers.isEmpty
+                                  ? null
+                                  : () => s
+                                      ..filterInsurers = []
+                                      ..notify(),
+                            ),
+                            RangeSummaryRows(
+                              minGross: s.grossPage2.currentMin,
+                              maxGross: s.grossPage2.currentMax,
+                              minSum: s.sumInsuredPage2.currentMin,
+                              maxSum: s.sumInsuredPage2.currentMax,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: SizedBox(
+                                height: screenH * 0.58,
+                                child: Column(
+                                  children: [
+                                    if (_listOk)
+                                      Expanded(
+                                        child: ListView.builder(
+                                          padding: const EdgeInsets.only(top: 4),
+                                          itemCount: s.insurers.length,
+                                          itemBuilder: (context, i) {
+                                            final ins = s.insurers[i];
+                                            if (!_visible(ins)) return const SizedBox.shrink();
+                                            return _InsurerCard(
+                                              insurer: ins,
+                                              installment: _installment,
+                                              onDetail: () => _openInsurer(ins),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    if (_response?.data != null && _response!.data!.dataLength == 0)
+                                      const ResultEmptyBox(text: 'ไม่พบข้อมูลบริษัทประกัน'),
+                                  ],
                                 ),
-                              if (_response?.data != null && _response!.data!.dataLength == 0)
-                                const ResultEmptyBox(text: 'ไม่พบข้อมูลบริษัทประกัน'),
-                            ],
-                          ),
+                              ),
+                            ),
+                            NonRateRow(onPressed: _openNonRate),
+                          ],
                         ),
-                      ),
-                      NonRateRow(onPressed: _openNonRate),
-                    ],
+                      );
+                    },
                   ),
-                );
-              },
-            ),
-          ),
+                ),
         ),
       ),
     );
@@ -271,13 +290,17 @@ class _InsurerCard extends StatelessWidget {
                         CardInfoRow(label: Text(insurer.insurerCode, style: AppText.style(fontSize: 11))),
                         if (fullPayOnly)
                           CardInfoRow(
-                            label: Text('ชำระเต็มจำนวนเท่านั้น',
-                                style: AppText.style(fontSize: 12, color: AppColors.alternate)),
+                            label: Text(
+                              'ชำระเต็มจำนวนเท่านั้น',
+                              style: AppText.style(fontSize: 12, color: AppColors.alternate),
+                            ),
                           ),
                         CardInfoRow(
                           label: Text('ประเภทประกัน', style: AppText.style(fontSize: 11)),
-                          value: Text(insurer.coverTypeList.isEmpty ? '-' : addCoverType(insurer.coverTypeList),
-                              style: AppText.style(fontSize: 11)),
+                          value: Text(
+                            insurer.coverTypeList.isEmpty ? '-' : addCoverType(insurer.coverTypeList),
+                            style: AppText.style(fontSize: 11),
+                          ),
                         ),
                         // Raw values, no comma formatting (as FF).
                         CardInfoRow(
@@ -298,7 +321,10 @@ class _InsurerCard extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Padding(padding: const EdgeInsets.only(right: 20), child: DetailButton(onPressed: onDetail)),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 20),
+                      child: DetailButton(onPressed: onDetail),
+                    ),
                   ],
                 ),
               ),
