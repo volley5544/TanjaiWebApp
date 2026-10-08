@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/ff_functions.dart';
 import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/env_version_tag.dart';
 import '../../models/insurance_package.dart';
 
 /// Shared pieces of InsurerOverallPage (spec 04) and InsurerListPage (spec 05).
@@ -30,6 +31,7 @@ PreferredSizeWidget resultAppBar({required String title, required VoidCallback o
       icon: const Icon(Icons.arrow_back_rounded, color: AppColors.brandOrange, size: 30),
     ),
     title: Text(title, style: AppText.style(fontSize: 18, color: const Color(0xFF003063))),
+    actions: const [EnvVersionTag()],
   );
 }
 

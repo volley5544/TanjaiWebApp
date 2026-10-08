@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/widgets/env_version_tag.dart';
 import '../search_package/product_type.dart';
 
 /// Entry menu for opening the web app directly (browser testing). Inside the
@@ -49,6 +50,7 @@ class HomeMenuPage extends StatelessWidget {
         surfaceTintColor: Colors.transparent,
         centerTitle: true,
         title: Text('ประกันทันใจ', style: AppText.style(fontSize: 18, color: AppColors.titleNavy)),
+        actions: const [EnvVersionTag()],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),

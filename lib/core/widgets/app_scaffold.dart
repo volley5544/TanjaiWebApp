@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import 'env_version_tag.dart';
 
 /// The FF pages' standard AppBar: white, centred navy title (Noto Sans Thai
 /// 18), orange back arrow (size 30) with no splash.
@@ -32,7 +33,7 @@ PreferredSizeWidget tanjaiAppBar({
           ),
     title: titleWidget ??
         Text(title, style: AppText.style(fontSize: titleSize, color: titleColor)),
-    actions: actions,
+    actions: [...actions, const EnvVersionTag()],
   );
 }
 
