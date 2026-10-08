@@ -1,0 +1,44 @@
+name: Deploy UAT (Firebase Hosting)
+
+# Pushing to the uat branch builds the web app and ships it to the
+# sawad-new-ibs-uat Firebase Hosting site. Credentials come from the
+# FIREBASE_SERVICE_ACCOUNT_UAT repository secret (the full service-account JSON).
+on:
+  push:
+    branches: [uat]
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-uat
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.6
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build web (uat)
+        # WEB_VERSION = CI run number, logged on boot to spot stale cached builds.
+        run: flutter build web --release --pwa-strategy=none --csp --no-web-resources-cdn --no-source-maps --no-wasm-dry-run --dart-define=ENV=uat --dart-define=WEB_VERSION=${{ github.run_number }}
+
+      - name: Write service account
+        run: printf '%s' "$SA_JSON" > "$RUNNER_TEMP/sa.json"
+        env:
+          SA_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UAT }}
+
+      - name: Deploy to Firebase Hosting (uat)
+        run: npx --yes firebase-tools@14 deploy --only hosting -P uat --non-interactive
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json

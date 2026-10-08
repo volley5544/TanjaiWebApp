@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "sawad-new-ibs-uat",
+    "uat": "sawad-new-ibs-uat",
+    "prod": "sawad-new-ibs"
+  }
+}
