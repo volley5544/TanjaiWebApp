@@ -15,9 +15,11 @@ results and look.
 
 | Feature | Entry | Status |
 |---|---|---|
-| Search insurance package — motor | `/motor` | ported |
-| Search insurance package — EV | `/ev` | ported |
-| Search insurance package — motorcycle | `/mc` | ported |
+| Search insurance package — motor | `/motor` | ported, user-tested on UAT |
+| Search insurance package — EV | `/ev` | ported, user-tested on UAT |
+| Search insurance package — motorcycle | `/mc` | ported, user-tested on UAT |
+
+Live UAT: https://sawad-new-ibs-uat.web.app. Prod has not been deployed yet.
 
 Pages the flow reaches that are not ported yet (InsuranceInfoPage1,
 InsuranceListPage, SelectReasonPage) open a placeholder (`/not-ported`).
@@ -61,7 +63,8 @@ lib/
     firebase/              FirestoreRest (read-only REST)
     theme/                 AppColors / AppText (FlutterFlow theme values)
     utils/ff_functions.dart  ports of FF custom functions
-    widgets/               LoadingScene/withLoading, dialogs, AppButton, selector tiles
+    widgets/               PageLoadingView (on-open loads), LoadingScene/withLoading (user actions),
+                           EnvVersionTag, dialogs, AppButton, app bars, selector tiles
   features/
     home/                  test menu + not-ported placeholder
     search_package/
@@ -85,6 +88,24 @@ Push to `uat` → GitHub Actions builds and deploys UAT Hosting; push to `main`
 
 Release builds use `--csp --no-web-resources-cdn --no-source-maps`.
 
+`WEB_VERSION` is the GitHub Actions run number. UAT builds show it as a small
+**"(UAT ver N)"** tag in every AppBar (hidden on prod) and log it at boot, so
+testers can tell which build the WebView is running.
+
+## UI conventions
+
+- **Loading:** a page loading its data on open shows a white body with an
+  orange spinner and caption (`PageLoadingView`, like sawadLoanUniversal); a
+  user action (search, save) shows the Tanjai overlay loader (`withLoading`).
+- Screens, texts and colors follow the FlutterFlow app; deliberate FF quirks
+  are kept and commented.
+
+## Not yet verified end to end
+
+- Quotation save (needs a real token; creates real data).
+- Filter and compare pages (built, not click-tested).
+- Quotation PDF iframe inside the Android WebView.
+
 ## Security posture (pentest prep)
 
 - No secrets in the repo or bundle except the known finding below; `etc/` and
@@ -106,3 +127,4 @@ Release builds use `--csp --no-web-resources-cdn --no-source-maps`.
 3. `hideInAppContent` requires Firebase Auth, which the web build doesn't have
    yet — it falls back to the current prod values until the bridge supplies an
    ID token.
+4. The GitHub repo is public — make it private before the pentest.
