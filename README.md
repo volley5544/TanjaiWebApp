@@ -18,7 +18,7 @@ results and look.
 | Search insurance package — motor | `/motor` | ported, user-tested on UAT |
 | Search insurance package — EV | `/ev` | ported, user-tested on UAT |
 | Search insurance package — motorcycle | `/mc` | ported, user-tested on UAT |
-| Quotation list (InsuranceListPage) → detail (MakeInsuranceListPage) → quotation PDF (QuotationCopy) | `/quotations` | ported, verified on UAT with real data |
+| Quotation list (InsuranceListPage) → detail (MakeInsuranceListPage) → quotation PDF (QuotationCopy) | `/quotations` | ported, user-tested on UAT |
 
 Live UAT: https://sawad-new-ibs-uat.web.app. Prod has not been deployed yet.
 

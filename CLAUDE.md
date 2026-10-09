@@ -14,8 +14,9 @@ current state, rules, conventions, and what's open.
 
 - **Feature 1 — search insurance package (motor / EV / MC): ported, on `uat`,
   user-tested and confirmed working.**
-- **Feature 2 — quotation list (`/quotations`): ported, pushed to `uat`,
-  waiting for the user to test.** FF InsuranceListPage → 'ทำประกัน' →
+- **Feature 2 — quotation list (`/quotations`): ported, on `uat`,
+  user-tested and confirmed working (2026-10-09).** The next feature will be
+  named by the user — wait for it. FF InsuranceListPage → 'ทำประกัน' →
   MakeInsuranceListPage (`/quotations/detail`) → QuotationCopy
   (`/quotations/pdf`). Code in `lib/features/quotation_list/`. Verified on
   UAT (ver7) with a real token in headless Chrome: list, search, confirm →
@@ -29,7 +30,7 @@ current state, rules, conventions, and what's open.
   - `eb77ccc` port of the search package feature
   - `f71435f` white-page loading view for on-open data loads
   - `1f045d2` "(UAT ver<build>)" tag in every AppBar
-  - `6a4c1e0` port of the quotation list feature
+  - `6a4c1e0` port of the quotation list feature (+ doc commits)
 - JS bridge to the host app: **not started** ("do nothing yet"). Launch params
   are the interim hand-off.
 
