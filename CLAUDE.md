@@ -28,7 +28,7 @@ current state, rules, conventions, and what's open.
   - `eb77ccc` port of the search package feature
   - `f71435f` white-page loading view for on-open data loads
   - `1f045d2` "(UAT ver<build>)" tag in every AppBar
-  - "Port quotation list…" commit — feature 2
+  - `6a4c1e0` port of the quotation list feature
 - JS bridge to the host app: **not started** ("do nothing yet"). Launch params
   are the interim hand-off.
 
