@@ -4,7 +4,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/widgets/app_scaffold.dart';
 
 /// Stand-in for a mobile-app page that isn't part of the web port yet (e.g.
-/// InsuranceInfoPage1, InsuranceListPage, SelectReasonPage). Shows which page
+/// InsuranceInfoPage1, NonePackageEditPage1, SelectReasonPage). Shows which page
 /// the flow would continue to, so testers can confirm the hand-off point.
 class NotPortedPage extends StatelessWidget {
   const NotPortedPage({super.key, required this.pageName, this.details = const {}});

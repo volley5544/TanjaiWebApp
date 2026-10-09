@@ -18,11 +18,29 @@ results and look.
 | Search insurance package — motor | `/motor` | ported, user-tested on UAT |
 | Search insurance package — EV | `/ev` | ported, user-tested on UAT |
 | Search insurance package — motorcycle | `/mc` | ported, user-tested on UAT |
+| Quotation list (InsuranceListPage) → detail (MakeInsuranceListPage) → quotation PDF (QuotationCopy) | `/quotations` | ported, tested with stubbed API responses; awaiting user test on UAT |
 
 Live UAT: https://sawad-new-ibs-uat.web.app. Prod has not been deployed yet.
 
-Pages the flow reaches that are not ported yet (InsuranceInfoPage1,
-InsuranceListPage, SelectReasonPage) open a placeholder (`/not-ported`).
+Pages the flows reach that are not ported yet (InsuranceInfoPage1 / 42 / 5,
+NonePackageEditPage1, NonePackageBasicPage, NonePackageSelectedInsurerPage,
+SelectReasonPage, LicenseSelectComponent) open a placeholder (`/not-ported`).
+
+### Quotation list (`/quotations`)
+
+- List: `POST /api/lead/get-lead-list` (`owner_id`, `mode: arunsawad`,
+  `list: quotation`). Search by first name, refresh, ⚠ legend = in-rate /
+  out-of-rate filter, call button (`tel:`), card buttons 'แก้ไข' / 'คัดลอก'
+  (none-package flow, not ported) and 'ทำประกัน'.
+- 'ทำประกัน' → confirm → `POST /api/lead/get-lead-by-id` → detail page
+  (`results.info.watingInfo`, count `results.counting.status_waiting_info`).
+- Detail buttons: 'ดูใบเสนอราคา' (`/quotations/pdf`), 'ดูกรมธรรม์'
+  (`/api/quotations/get-file-vmi`, new tab), 'ดู พ.ร.บ'
+  (`/api/quotations/get-file-cmi`), 'ติดตามงาน' (`/api/lead/get-history`
+  sheet), 'เงื่อนไข บ.ประกัน' (insurer remark), main button → not-ported pages.
+- All calls are reads; nothing is created or changed.
+- Also reached from the add-customer save flow when the video-call gate
+  blocks InsuranceInfoPage1.
 
 ## Run locally
 
@@ -67,6 +85,10 @@ lib/
                            EnvVersionTag, dialogs, AppButton, app bars, selector tiles
   features/
     home/                  test menu + not-ported placeholder
+    quotation_list/        quotation list → MakeInsuranceListPage → QuotationCopy
+      models/  data/       lead models + LeadApi (statusCode / results.statusCode envelope)
+      state/               QuotationListState (filter, detail items, PDF URLs)
+      list/  detail/       pages, legend sheet, history sheet
     search_package/
       models/  data/       typed models + SearchPackageApi
       state/               SearchPackageState — one per product (motor/ev/mc)
@@ -105,6 +127,13 @@ testers can tell which build the WebView is running.
 - Quotation save (needs a real token; creates real data).
 - Filter and compare pages (built, not click-tested).
 - Quotation PDF iframe inside the Android WebView.
+- Quotation list / detail against the real API: tested only with stubbed
+  responses built from the fields the FF pages read. The sample in
+  `etc/api_sample/quotation_api_sample.txt` has application-style fields for
+  `get-lead-list` (`first_name_th`, `mobile1`, `application_no`, …), not the
+  ones the FF page reads (`first_name`, `phone_number`, `quotation_no`, …),
+  and its `get-lead-by-id` has `payments` instead of `watingInfo`.
+- The call button (`tel:`) inside the host WebView.
 
 ## Security posture (pentest prep)
 

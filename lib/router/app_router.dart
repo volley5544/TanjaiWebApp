@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import '../core/session/user_session.dart';
 import '../features/home/home_menu_page.dart';
 import '../features/home/not_ported_page.dart';
+import '../features/quotation_list/detail/make_insurance_list_page.dart';
+import '../features/quotation_list/detail/quotation_copy_page.dart';
+import '../features/quotation_list/list/quotation_list_page.dart';
 import '../features/search_package/compare/compare_page.dart';
 import '../features/search_package/customer/add_customer_page.dart';
 import '../features/search_package/detail/package_detail_page.dart';
@@ -34,6 +37,12 @@ abstract final class AppRoutes {
   static String quotation(ProductType p) => '/${p.path}/quotation';
   static String workSelect(ProductType p) => '/${p.path}/work-select';
 
+  /// Quotation list (FF InsuranceListPage) → MakeInsuranceListPage →
+  /// QuotationCopy. Not product-scoped; flow data in `QuotationListState`.
+  static const quotationList = '/quotations';
+  static const quotationDetail = '/quotations/detail';
+  static const quotationCopy = '/quotations/pdf';
+
   /// Hand-off to a mobile-app page that isn't ported yet.
   static String notPorted(String pageName) => '/not-ported?page=${Uri.encodeQueryComponent(pageName)}';
 }
@@ -54,6 +63,16 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/motor', builder: (context, state) => const MotorSearchPage()),
     GoRoute(path: '/ev', builder: (context, state) => const EvSearchPage()),
     GoRoute(path: '/mc', builder: (context, state) => const McSearchPage()),
+    // Before the `/:product/…` routes: `/quotations/detail` would match
+    // `/:product/detail` otherwise.
+    GoRoute(
+      path: AppRoutes.quotationList,
+      builder: (context, state) => const QuotationListPage(),
+      routes: [
+        GoRoute(path: 'detail', builder: (context, state) => const MakeInsuranceListPage()),
+        GoRoute(path: 'pdf', builder: (context, state) => const QuotationCopyPage()),
+      ],
+    ),
     GoRoute(
       path: '/not-ported',
       builder: (context, state) => NotPortedPage(pageName: state.uri.queryParameters['page'] ?? ''),

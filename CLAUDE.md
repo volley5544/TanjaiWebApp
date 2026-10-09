@@ -10,18 +10,25 @@ App text/data is Thai; code, comments and commit messages are English.
 structure, deploy, security). This file is the working guide for Claude:
 current state, rules, conventions, and what's open.
 
-## Current state (read first) — updated 2026-10-08
+## Current state (read first) — updated 2026-10-09
 
 - **Feature 1 — search insurance package (motor / EV / MC): ported, on `uat`,
-  user-tested and confirmed working.** The user called it done for now. The
-  next feature will be named by the user — wait for it.
-- Live UAT: https://sawad-new-ibs-uat.web.app (`/motor`, `/ev`, `/mc`).
+  user-tested and confirmed working.**
+- **Feature 2 — quotation list (`/quotations`): ported, pushed to `uat`,
+  waiting for the user to test.** FF InsuranceListPage → 'ทำประกัน' →
+  MakeInsuranceListPage (`/quotations/detail`) → QuotationCopy
+  (`/quotations/pdf`). Code in `lib/features/quotation_list/`. Verified only
+  with stubbed API responses (headless Chrome); the user's sample file
+  doesn't match the fields FF reads (see Open items).
+- Live UAT: https://sawad-new-ibs-uat.web.app (`/motor`, `/ev`, `/mc`,
+  `/quotations`).
 - **Prod (`main`) has never been deployed.** Nothing goes to prod until the user
   explicitly says so for that job.
 - Commits on `uat`:
   - `eb77ccc` port of the search package feature
   - `f71435f` white-page loading view for on-open data loads
   - `1f045d2` "(UAT ver<build>)" tag in every AppBar
+  - "Port quotation list…" commit — feature 2
 - JS bridge to the host app: **not started** ("do nothing yet"). Launch params
   are the interim hand-off.
 
@@ -45,7 +52,11 @@ current state, rules, conventions, and what's open.
 ## Reference projects
 
 - FF source: `/Users/volley5544/Projects/Flutter/tanjai` (search package lives in
-  `lib/search_package`; entry `search_insurance_page_widget.dart`).
+  `lib/search_package`; entry `search_insurance_page_widget.dart`; quotation
+  list = `lib/pages/super_app/insurance_list_page`, detail =
+  `lib/pages/super_app/make_insurance_list_page`).
+- API response samples from the user: `etc/api_sample/` (git-ignored, may hold
+  real customer data — never commit or paste it).
 - Web structure + JS bridge patterns: `/Users/volley5544/Projects/Flutter/sawadLoanUniversal`
   (borrowed so far: `PLoanLoadingView` → `PageLoadingView`, `EnvVersionTag`,
   `WEB_VERSION`, Firestore inspection approach).
@@ -105,6 +116,16 @@ headers, click by coordinates, screenshot each step. Recreate if needed.
 - Router: go_router, path URL strategy, `lib/router/app_router.dart` (`AppRoutes`).
   Flow data lives in state, **never in the URL**; a page opened by refresh
   without its state redirects back to the product search page.
+- Lead / quotation-file APIs (`LeadApi`) use a different envelope from the
+  search APIs: `$.statusCode` / `$.statusMessage` (layer 1) and
+  `$.results.statusCode` / `$.results.statusMessage` (layer 2) →
+  `LeadApiResult.status1/message1/status2/message2`.
+- FF read list APIs as parallel `info[:].field` lists with `.withoutNulls`
+  (a null shifts that column); the port reads each item's own object instead.
+- Quotation list: `QuotationListState.instance` holds the legend filter
+  (`searchList1`), the detail items and the PDF URLs. Routes under
+  `/quotations` are declared before `/:product/…` (else `/quotations/detail`
+  matches `/:product/detail`).
 - Search package: one `SearchPackageState.of(ProductType)` per product;
   `SearchableListPage.open(...)` returns selected indices and the caller applies
   them.
@@ -148,6 +169,19 @@ headers, click by coordinates, screenshot each step. Recreate if needed.
    `getdate-time` ships in the bundle (`_kGetDateTimeBasicAuth`); insurance
    master/search APIs are unauthenticated; the API reflects any `Origin` in CORS.
 4. **GitHub repo is public** — recommended to make it private before the pentest.
-5. Pages reached from the flow but not ported yet open `/not-ported`
-   (InsuranceInfoPage1, InsuranceListPage, SelectReasonPage).
+5. Pages reached from the flows but not ported yet open `/not-ported`
+   (InsuranceInfoPage1 / 42 / 5, NonePackageEditPage1, NonePackageBasicPage,
+   NonePackageSelectedInsurerPage, SelectReasonPage, LicenseSelectComponent).
 6. JS bridge not started; it should replace the launch-param hand-off.
+7. **Quotation list vs. real API:** `etc/api_sample/quotation_api_sample.txt`
+   `get-lead-list` items have application fields (`first_name_th`, `mobile1`,
+   `application_no`, `application_status`) while FF's page reads `first_name`,
+   `last_name`, `phone_number`, `quotation_status`, `quotation_no`,
+   `expire_date`, `flag_expired`…; its `get-lead-by-id` has `info.payments`,
+   not `info.watingInfo`. The port follows the FF getters — confirm with the
+   user's UAT test (or a fresh `list: quotation` sample).
+8. Not reachable from the list, so not ported on MakeInsuranceListPage: the
+   `checkPayment == '1'` filter/legend, `fromPage: 'FollowUpPage'` back
+   target; the dashboard / lead-follow-up entry points.
+9. `tel:` call button and new-tab PDF opening inside the host WebView are
+   untested (may need the bridge).

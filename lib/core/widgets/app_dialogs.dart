@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 /// The FF pages' alert: plain `AlertDialog(content: Text(msg))` with one
 /// 'Ok' button. Messages shown to users must never contain raw exceptions or
 /// server internals — pass a Thai user-facing message.
-Future<void> showAlert(BuildContext context, String message) {
+Future<void> showAlert(BuildContext context, String message, {String title = ''}) {
   return showDialog<void>(
     context: context,
     builder: (dialogContext) => AlertDialog(
+      title: title.isEmpty ? null : Text(title),
       content: Text(message),
       actions: [
         TextButton(

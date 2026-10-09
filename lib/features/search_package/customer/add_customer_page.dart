@@ -27,27 +27,9 @@ import '../state/search_package_state.dart';
 /// * [fromBtn] `'saveBtn'` → continue to the application flow; anything else
 ///   (`'quotationBtn'`, compare's `''`) → Quotation PDF page.
 ///
-/// End of the `saveBtn` flow (not ported, outside this feature) —
-/// InsuranceListPage (`insuranceListPage`, FF goNamed = stack replaced, no
-/// params) is the super app's "my customers / quotation list" hub:
-/// * AppBar 'จำนวนลูกค้าทั้งหมด'; back resets ~100 `nonePackage*` fields,
-///   waits 500 ms, then goes to `SuperAppPage`.
-/// * On load: (mobile build-version gate), `searchList1='0'`, resets some
-///   search-form state (`insuranceOperationChoiceChips='งานใหม่          '`,
-///   `insuranceCustomerTypeChoiceChips='บุคคลธรรมดา'`,
-///   `insuranceBoxTypeChoiceChip='ตู้แห้ง'`,
-///   `insuranceVehicleTypeDropDown='กรุณาเลือก'`, …).
-/// * API `InsuranceRequestListAPICall(apiUrl, token, ownerId: employeeID,
-///   mode: 'arunsawad', list: 'quotation')`; HTTP≠200 →
-///   'พบข้อผิดพลาดConnection (<code>)'; `statusLayer2` ∉ {200,404} →
-///   'พบข้อผิดพลาด (<code>)'. Also `InsuranceRequestListAPIDashBoardCall`;
-///   items parsed with `InsuranceRequestDetailAPICall` getters.
-/// * UI: search box 'ค้นหาชื่อลูกค้า'; cards with ชื่อลูกค้า, เบอร์โทร,
-///   ขอเบี้ย / แจ้งงาน / ผลิตภัณฑ์ ('งานต่ออายุ' / 'งานโอนโค้ด' / 'งานใหม่'),
-///   วันที่บันทึก, ใบเสนอราคามีผลใช้ถึง, สถานะ, เลขที่ใบคำขอ; empty state
-///   'ไม่พบข้อมูลในระบบ'. Card actions 'คัดลอก', 'แก้ไข' → NonePackageEditPage1
-///   (confirm 'ต้องการจะบันทึกเตรียมข้อมูลใช่หรือไม่?' 'ยกเลิก'/'ยืนยัน'),
-///   'ทำประกัน' → MakeInsuranceListPage.
+/// End of the `saveBtn` flow: InsuranceInfoPage1 (not ported) or, when the
+/// video-call gate blocks it, the quotation list (`AppRoutes.quotationList`,
+/// FF `goNamed('insuranceListPage')` = stack replaced).
 class AddCustomerPage extends StatefulWidget {
   const AddCustomerPage({
     super.key,
@@ -267,7 +249,7 @@ class _AddCustomerPageState extends State<AddCustomerPage> {
         // state.lastSaveResult for the future port (not put in the URL).
         context.go(AppRoutes.notPorted('InsuranceInfoPage1'));
       } else {
-        context.go(AppRoutes.notPorted('InsuranceListPage'));
+        context.go(AppRoutes.quotationList);
       }
     } else {
       final router = GoRouter.of(context);
