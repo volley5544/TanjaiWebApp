@@ -17,8 +17,10 @@ current state, rules, conventions, and what's open.
 - **Feature 2 — quotation list (`/quotations`): ported, pushed to `uat`,
   waiting for the user to test.** FF InsuranceListPage → 'ทำประกัน' →
   MakeInsuranceListPage (`/quotations/detail`) → QuotationCopy
-  (`/quotations/pdf`). Code in `lib/features/quotation_list/`. User's UAT
-  screenshots (ver6) show list + detail rendering real data correctly.
+  (`/quotations/pdf`). Code in `lib/features/quotation_list/`. Verified on
+  UAT (ver7) with a real token in headless Chrome: list, search, confirm →
+  get-lead-by-id → detail, real quotation PDF in the iframe, 'ดาวน์โหลด PDF'
+  new tab, 'ติดตามงาน' history sheet, main button → InsuranceInfoPage1.
 - Live UAT: https://sawad-new-ibs-uat.web.app (`/motor`, `/ev`, `/mc`,
   `/quotations`).
 - **Prod (`main`) has never been deployed.** Nothing goes to prod until the user
@@ -172,11 +174,16 @@ headers, click by coordinates, screenshot each step. Recreate if needed.
    (InsuranceInfoPage1 / 42 / 5, NonePackageEditPage1, NonePackageBasicPage,
    NonePackageSelectedInsurerPage, SelectReasonPage, LicenseSelectComponent).
 6. JS bridge not started; it should replace the launch-param hand-off.
-7. Quotation list: real UAT data (ver6) renders on both pages with the FF
-   field names — the old sample file was from a different list. Still to
-   check on a real quotation: PDF / policy / act buttons, 'ทำประกัน' hand-offs.
+7. Quotation list: 'ดูกรมธรรม์' / 'ดู พ.ร.บ' not tried on real data (the
+   test user has no 'อนุมัติ' quotation).
 8. Not reachable from the list, so not ported on MakeInsuranceListPage: the
    `checkPayment == '1'` filter/legend, `fromPage: 'FollowUpPage'` back
    target; the dashboard / lead-follow-up entry points.
 9. `tel:` call button and new-tab PDF opening inside the host WebView are
    untested (may need the bridge).
+10. **API hosts resolve to private IPs on the office network** (`is-dev` →
+    10.1.112.122, `tanjai` → 10.1.114.126). Chrome's Local Network Access
+    check then blocks calls from `*.web.app` (`ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS`)
+    unless the user allows it; headless tests need
+    `--disable-features=LocalNetworkAccessChecks`. Check how the host
+    Android/iOS WebView behaves on office Wi-Fi vs. mobile data.

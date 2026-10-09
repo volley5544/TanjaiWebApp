@@ -18,7 +18,7 @@ results and look.
 | Search insurance package — motor | `/motor` | ported, user-tested on UAT |
 | Search insurance package — EV | `/ev` | ported, user-tested on UAT |
 | Search insurance package — motorcycle | `/mc` | ported, user-tested on UAT |
-| Quotation list (InsuranceListPage) → detail (MakeInsuranceListPage) → quotation PDF (QuotationCopy) | `/quotations` | ported, renders real data on UAT |
+| Quotation list (InsuranceListPage) → detail (MakeInsuranceListPage) → quotation PDF (QuotationCopy) | `/quotations` | ported, verified on UAT with real data |
 
 Live UAT: https://sawad-new-ibs-uat.web.app. Prod has not been deployed yet.
 
@@ -127,8 +127,10 @@ testers can tell which build the WebView is running.
 - Quotation save (needs a real token; creates real data).
 - Filter and compare pages (built, not click-tested).
 - Quotation PDF iframe inside the Android WebView.
-- Quotation list / detail: real UAT data renders; PDF / policy / act buttons
-  not yet tried on a real quotation.
+- Quotation detail: 'ดูกรมธรรม์' / 'ดู พ.ร.บ' (need an approved quotation).
+- On the office network the API hosts resolve to private 10.x IPs, so
+  Chrome's Local Network Access check can block calls from the `web.app`
+  origin until the user allows it — check the host WebView on office Wi-Fi.
 - The call button (`tel:`) inside the host WebView.
 
 ## Security posture (pentest prep)
