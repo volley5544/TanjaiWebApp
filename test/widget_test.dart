@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tanjai_web_app/core/session/user_session.dart';
 import 'package:tanjai_web_app/core/utils/ff_functions.dart';
 import 'package:tanjai_web_app/core/utils/tel_link.dart';
+import 'package:tanjai_web_app/features/manual_request/models/lead_detail.dart';
+import 'package:tanjai_web_app/features/manual_request/state/none_package_state.dart';
 import 'package:tanjai_web_app/features/quotation_list/models/lead_detail_item.dart';
 import 'package:tanjai_web_app/features/quotation_list/models/lead_history.dart';
 import 'package:tanjai_web_app/features/quotation_list/models/quotation_lead.dart';
@@ -135,4 +137,74 @@ void main() {
       expect(telDigits('javascript:alert(1)'), '1');
     });
   });
+
+  group('manual request', () {
+    final detailJson = {
+      'statusCode': 200,
+      'results': {
+        'statusCode': 200,
+        'info': [
+          {
+            'car_type': 'รถเก๋ง',
+            'car_brand_name': 'TOYOTA',
+            'car_model_id': null,
+            'car_registration_year': '2024',
+            'vehicle_id': 16,
+            'first_name': 'สมชาย',
+            'last_name': '',
+            'phone_number': null,
+            'customer_type': 'บุคคลธรรมดา',
+            'reason': 'ไม่พอใจในทุนประกัน',
+            'ev_flag': 'Y',
+            'lead_id': 3747,
+            'leads_detail': [
+              {'insurer_short_name': 'MTI', 'cover_type_name': 'ชั้น 2+', 'image_other': ['https://x/1.jpg']},
+              {'insurer_short_name': 'VIRIYAH', 'cover_type_name': null},
+            ],
+          },
+        ],
+      },
+    };
+
+    test('LeadDetail: nulls become "-" (FF checkNullValueAndReturn), rows kept aligned', () {
+      final d = LeadDetail.fromJson(detailJson)!;
+      expect(d.carModelId, '-');
+      expect(d.phoneNumber, '-');
+      expect(d.vehicleId, '16');
+      expect(d.leadId, '3747');
+      expect(d.details.length, 2);
+      expect(d.details[1].insurerShortName, 'VIRIYAH');
+      expect(d.details[1].coverTypeName, '-');
+      expect(d.details[0].imageOther, ['https://x/1.jpg']);
+    });
+
+    test('startCopy maps the lead into the create flow', () {
+      final s = NonePackageState.instance..startCopy(LeadDetail.fromJson(detailJson)!);
+      expect(s.active, isTrue);
+      expect(s.year, '2567');
+      expect(s.yearChrist, '2024');
+      expect(s.modelCode, '');
+      expect(s.cusPhone, '');
+      expect(s.reason, [false, true, false]);
+      expect(s.buttonOrdinary, isTrue);
+      expect(s.workType, 'ev');
+      expect(s.fromMenu, 'EV');
+      expect(s.insurerShortNameDup, ['MTI', 'VIRIYAH']);
+      expect(s.coverTypeName, 'ชั้น 2+');
+      s.reset();
+      expect(s.active, isFalse);
+      expect(s.vehicleType, NpPlaceholders.vehicleType);
+    });
+
+    test('placeholder helpers and FF number format', () {
+      expect(noPh(NpPlaceholders.cusPhone), '');
+      expect(noPh('0812345678'), '0812345678');
+      expect(showNumberWithCommaWithoutDot('1500000'), '1,500,000.00');
+      expect(showNumberWithCommaWithoutDot('1234.5'), '1,234.50');
+      expect(showNumberWithCommaWithoutDot('abc'), '-');
+      expect(checkPhoneNumberInput('0812345678'), isTrue);
+      expect(checkPhoneNumberInput('812345678'), isFalse);
+    });
+  });
 }
+

@@ -43,6 +43,14 @@ enum AppEnvironment {
   /// Firestore is empty, so both builds read prod's publicly readable docs.
   static const String firestoreProjectId = 'sawad-new-ibs';
 
+  /// Public web API key of `sawad-new-ibs` (the same one the FF mobile/web
+  /// build ships). It only identifies the project to Google's endpoints and
+  /// grants nothing on its own; used for anonymous sign-in (photo uploads).
+  static const String firebaseApiKey = 'AIzaSyDCTqsBpj5Hf4NGjKFHtmg_xArMIRiQEL4';
+
+  /// Cloud Storage bucket the mobile app uploads request photos to.
+  static const String storageBucket = 'sawad-new-ibs.appspot.com';
+
   /// Hard timeout for every API call (the FlutterFlow app had none).
   Duration get apiTimeout => const Duration(seconds: 60);
 }

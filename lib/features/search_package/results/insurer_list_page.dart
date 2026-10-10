@@ -13,6 +13,7 @@ import '../product_type.dart';
 import '../state/search_package_state.dart';
 import 'insurer_installment.dart';
 import 'widgets/result_widgets.dart';
+import '../../manual_request/entry.dart';
 
 /// Package-level result list with compare check-boxes (FF `InsurerListPage`,
 /// spec 05).
@@ -186,12 +187,13 @@ class _InsurerListPageState extends State<InsurerListPage> {
     context.pop();
   }
 
-  void _openNonRate() {
-    // FF reset ~160 nonePackage* fields and pre-filled them from the search
-    // form before opening SelectReasonPage(workType: EV ? 'ev' : 'manual').
-    // That flow isn't ported, so the resets are skipped.
-    context.push(AppRoutes.notPorted('SelectReasonPage'));
-  }
+  /// 'งานนอกเรท': manual request pre-filled from the whole search form.
+  void _openNonRate() => startManualRequestFromSearch(
+        context,
+        _state,
+        gated: false,
+        workType: widget.product == ProductType.ev ? 'ev' : 'manual',
+      );
 
   @override
   Widget build(BuildContext context) {

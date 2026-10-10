@@ -4,6 +4,12 @@ import 'package:go_router/go_router.dart';
 import '../core/session/user_session.dart';
 import '../features/home/home_menu_page.dart';
 import '../features/home/not_ported_page.dart';
+import '../features/manual_request/create/basic_page.dart';
+import '../features/manual_request/create/insurer_page.dart';
+import '../features/manual_request/create/photo_pages.dart';
+import '../features/manual_request/create/select_reason_page.dart';
+import '../features/manual_request/edit/edit_pages.dart';
+import '../features/manual_request/result_page.dart';
 import '../features/quotation_list/detail/make_insurance_list_page.dart';
 import '../features/quotation_list/detail/quotation_copy_page.dart';
 import '../features/quotation_list/list/quotation_list_page.dart';
@@ -43,6 +49,20 @@ abstract final class AppRoutes {
   static const quotationDetail = '/quotations/detail';
   static const quotationCopy = '/quotations/pdf';
 
+  /// Manual (none-package) request: create flow, result pages, edit flow.
+  /// Flow data in `NonePackageState`.
+  static const manualReason = '/manual/reason';
+  static const manualBasic = '/manual/basic';
+  static const manualPhotos = '/manual/photos';
+  static const manualDocuments = '/manual/documents';
+  static const manualInsurers = '/manual/insurers';
+  static const manualSuccess = '/manual/success';
+  static const manualUnsuccess = '/manual/unsuccess';
+  static const manualEdit = '/manual/edit';
+  static const manualEditDetail = '/manual/edit/detail';
+  static const manualEditPhotos = '/manual/edit/photos';
+  static const manualEditDocuments = '/manual/edit/documents';
+
   /// Hand-off to a mobile-app page that isn't ported yet.
   static String notPorted(String pageName) => '/not-ported?page=${Uri.encodeQueryComponent(pageName)}';
 }
@@ -71,6 +91,22 @@ final GoRouter appRouter = GoRouter(
       routes: [
         GoRoute(path: 'detail', builder: (context, state) => const MakeInsuranceListPage()),
         GoRoute(path: 'pdf', builder: (context, state) => const QuotationCopyPage()),
+      ],
+    ),
+    GoRoute(path: AppRoutes.manualReason, builder: (context, state) => const SelectReasonPage()),
+    GoRoute(path: AppRoutes.manualBasic, builder: (context, state) => const BasicPage()),
+    GoRoute(path: AppRoutes.manualPhotos, builder: (context, state) => const BasicImage1Page()),
+    GoRoute(path: AppRoutes.manualDocuments, builder: (context, state) => const BasicImage2Page()),
+    GoRoute(path: AppRoutes.manualInsurers, builder: (context, state) => const InsurerPage()),
+    GoRoute(path: AppRoutes.manualSuccess, builder: (context, state) => const RequestResultPage(success: true)),
+    GoRoute(path: AppRoutes.manualUnsuccess, builder: (context, state) => const RequestResultPage(success: false)),
+    GoRoute(
+      path: AppRoutes.manualEdit,
+      builder: (context, state) => const EditPage1(),
+      routes: [
+        GoRoute(path: 'detail', builder: (context, state) => const EditDetailPage()),
+        GoRoute(path: 'photos', builder: (context, state) => const EditPage2()),
+        GoRoute(path: 'documents', builder: (context, state) => const EditPage3()),
       ],
     ),
     GoRoute(

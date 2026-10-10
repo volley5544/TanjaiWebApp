@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../core/config/app_environment.dart';
+import '../../../core/config/local_api_auth.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/session/user_session.dart';
 import '../models/brand.dart';
@@ -14,11 +15,6 @@ import '../models/server_date_time.dart';
 import '../models/vehicle_usage.dart';
 import 'api_result.dart';
 
-/// SECURITY: shared Basic credential (`takko:123456`) that the mobile app's
-/// GetDateTimeAPICall sends to `check-in/getdate-time`. Shipping it in the web
-/// bundle makes it public (pentest finding) — the endpoint must move to
-/// per-user auth (e.g. the Bearer token) server-side, then drop this constant.
-const String _kGetDateTimeBasicAuth = 'Basic dGFra286MTIzNDU2';
 
 /// The search-package endpoints, one method per FF call class used by live
 /// code. Bodies keep the FF templates' keys, order and value formats
@@ -180,7 +176,7 @@ class SearchPackageApi {
       '$base/api/check-in/getdate-time',
       {'token': UserSession.instance.accessToken, 'api_url': base},
       ServerDateTime.fromJson,
-      headers: {'Authorization': _kGetDateTimeBasicAuth},
+      headers: {'Authorization': kLocalApiBasicAuth},
       codeKey: 'status',
     );
   }

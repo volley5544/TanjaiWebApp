@@ -19,19 +19,20 @@ results and look.
 | Search insurance package — EV | `/ev` | ported, user-tested on UAT |
 | Search insurance package — motorcycle | `/mc` | ported, user-tested on UAT |
 | Quotation list (InsuranceListPage) → detail (MakeInsuranceListPage) → quotation PDF (QuotationCopy) | `/quotations` | ported, user-tested on UAT |
+| Manual request งานนอกเรท — create (SelectReason → form → photos → documents → insurers → submit) and edit photos ('แก้ไข') | `/manual/*` (from 'นอกเรท' / 'คัดลอก' / 'แก้ไข') | ported, browser-tested on UAT data; **photo upload needs Firebase Anonymous sign-in enabled** |
 
 Live UAT: https://sawad-new-ibs-uat.web.app. Prod has not been deployed yet.
 
 Pages the flows reach that are not ported yet (InsuranceInfoPage1 / 42 / 5,
-NonePackageEditPage1, NonePackageBasicPage, NonePackageSelectedInsurerPage,
-SelectReasonPage, LicenseSelectComponent) open a placeholder (`/not-ported`).
+NonePackageSelectedInsurerPage, LicenseSelectComponent) open a placeholder
+(`/not-ported`).
 
 ### Quotation list (`/quotations`)
 
 - List: `POST /api/lead/get-lead-list` (`owner_id`, `mode: arunsawad`,
   `list: quotation`). Search by first name, refresh, ⚠ legend = in-rate /
   out-of-rate filter, call button (`tel:`), card buttons 'แก้ไข' / 'คัดลอก'
-  (none-package flow, not ported) and 'ทำประกัน'.
+  (manual request edit / copy, below) and 'ทำประกัน'.
 - 'ทำประกัน' → confirm → `POST /api/lead/get-lead-by-id` → detail page
   (`results.info.watingInfo`, count `results.counting.status_waiting_info`).
 - Detail buttons: 'ดูใบเสนอราคา' (`/quotations/pdf`), 'ดูกรมธรรม์'
@@ -41,6 +42,29 @@ SelectReasonPage, LicenseSelectComponent) open a placeholder (`/not-ported`).
 - All calls are reads; nothing is created or changed.
 - Also reached from the add-customer save flow when the video-call gate
   blocks InsuranceInfoPage1.
+
+### Manual request — งานนอกเรท (`/manual/*`)
+
+- Create: 'นอกเรท' on work-select / result pages (pre-filled from the search
+  form) or 'คัดลอก' on the quotation list (`/api/lead/get-lead-detail`) →
+  `/manual/reason` → `/manual/basic` (master data: province, vehicle usage
+  `vehicle_category: manual`, brands, models, cover types) → `/manual/photos`
+  (car / truck / trailer diagram; skipped for EV, renew, usage 110, ชั้น 3) →
+  `/manual/documents` (vehicle book, ID card, others, consents) →
+  `/manual/insurers` (`get_insurers_all`, max 3) → `POST
+  /api/manual-insurance/save` (multipart; **creates the request and emails
+  the insurers**) → `/manual/success` or `/manual/unsuccess`.
+- Edit ('แก้ไข'): `/manual/edit` (branch, one insurer) → detail → photos →
+  documents → `POST /api/manual-insurance/edit` → back to the reloaded list.
+- Photos: picked with `image_picker` (Gallery / Camera sheet, JPEG q30),
+  uploaded to Firebase Storage `users/<anonUid>/uploads/…` via REST with an
+  **anonymous Firebase identity** (`FirebaseAuthRest`); the API receives the
+  download URLs, as with the mobile app. Requires Authentication → Sign-in
+  method → **Anonymous** enabled in project `sawad-new-ibs` (currently off →
+  every upload shows 'อัพโหลดรูปภาพล้มเหลว').
+- After a submit the insurance support team uploads the insurer quotation in
+  the back office; the request then reaches the choose-insurer step
+  (NonePackageSelectedInsurerPage — not ported yet).
 
 ## Run locally
 
@@ -78,13 +102,16 @@ lib/
     config/                AppEnvironment (uat/prod API bases)
     session/               UserSession (launch params) + URL cleaner
     network/               ApiClient (JSON POST, timeout, no logging)
-    firebase/              FirestoreRest (read-only REST)
+    firebase/              FirestoreRest (read-only REST), FirebaseAuthRest (anonymous),
+                           FirebaseStorageRest (photo upload)
     theme/                 AppColors / AppText (FlutterFlow theme values)
     utils/ff_functions.dart  ports of FF custom functions
     widgets/               PageLoadingView (on-open loads), LoadingScene/withLoading (user actions),
                            EnvVersionTag, dialogs, AppButton, app bars, selector tiles
   features/
     home/                  test menu + not-ported placeholder
+    manual_request/        งานนอกเรท create + edit flows (NonePackageState, ManualRequestApi,
+                           create/ edit/ shared/ — photo upload, diagram, form widgets)
     quotation_list/        quotation list → MakeInsuranceListPage → QuotationCopy
       models/  data/       lead models + LeadApi (statusCode / results.statusCode envelope)
       state/               QuotationListState (filter, detail items, PDF URLs)
@@ -132,6 +159,10 @@ testers can tell which build the WebView is running.
   Chrome's Local Network Access check can block calls from the `web.app`
   origin until the user allows it — check the host WebView on office Wi-Fi.
 - The call button (`tel:`) inside the host WebView.
+- Manual request: real photo upload (needs Anonymous sign-in), a real
+  `manual-insurance/save` / `edit` (tested with stubbed responses only), the
+  'นอกเรท' entry from the search pages (built, not click-tested), and the
+  Camera / file chooser inside the host WebView (needs file-chooser support).
 
 ## Security posture (pentest prep)
 
@@ -146,12 +177,17 @@ testers can tell which build the WebView is running.
 
 **Known findings to fix outside the web app**
 
-1. `getdate-time` (local API) requires a shared `Authorization: Basic`
-   credential that ships in the client bundle — needs a per-user auth scheme
-   server-side.
+1. The local API (`getdate-time`, `check-in/location`) requires a shared
+   `Authorization: Basic` credential that ships in the client bundle
+   (`kLocalApiBasicAuth`) — needs a per-user auth scheme server-side.
 2. Master-data and package-search insurance APIs are unauthenticated, and the
    API echoes any `Origin` in `Access-Control-Allow-Origin`.
 3. `hideInAppContent` requires Firebase Auth, which the web build doesn't have
    yet — it falls back to the current prod values until the bridge supplies an
    ID token.
 4. The GitHub repo is public — make it private before the pentest.
+5. The **mobile app** signs every employee into Firebase as
+   `<empId>@srisawadinsurance.com` with one hard-coded shared password
+   (`check_status_firebase.dart`), so anyone who knows an employee ID can act
+   as that employee in Firebase. The web build does not copy this (it uses an
+   anonymous identity); the mobile app should move to per-user tokens.

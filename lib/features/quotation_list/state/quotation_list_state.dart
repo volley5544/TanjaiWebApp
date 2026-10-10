@@ -41,5 +41,14 @@ class QuotationListState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Bumped to make an existing list page reload (FF `goNamed` rebuilt the
+  /// list; go_router reuses the page already in the stack).
+  int reloadTick = 0;
+
+  void requestReload() {
+    reloadTick++;
+    notifyListeners();
+  }
+
   void notify() => notifyListeners();
 }

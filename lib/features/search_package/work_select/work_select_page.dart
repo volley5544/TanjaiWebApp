@@ -6,6 +6,8 @@ import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../router/app_router.dart';
 import '../product_type.dart';
+import '../../manual_request/entry.dart';
+import '../state/search_package_state.dart';
 
 /// Port of FF `InsuranceWorkSelectPage` (เลือกงานประกัน, spec 10): shown when
 /// the package search found nothing; offers the off-rate job (งานนอกเรท).
@@ -24,21 +26,15 @@ class WorkSelectPage extends StatelessWidget {
   /// replaced. System/browser back does the same (FF blocked it).
   void _back(BuildContext context) => context.go(AppRoutes.search(product));
 
-  void _onOffRate(BuildContext context) {
-    // TODO(SelectReasonPage port): before pushing, FF reset ~100
-    // `nonePackage*` app-state fields to their placeholders (spec 10 §2
-    // step A), set nonePackageFlagRenew=false (B), prefilled from the search
-    // form per `checkFilled` flags (C: vehicle type, brand name/id, model
-    // name/code, year BE, usage id/code/name, model lists, isBrandSelect,
-    // and always oldVmiExpDate) and re-cleared image fields (D). The future
-    // port must build that none-package state from this product's
-    // SearchPackageState and pass `workType`:
-    //   'ev' if fromIcon == 'EV', else 'manual'.
-    // FF quirk: SearchInsurancePage never passed fromIcon (default 'motor'),
-    // so workType was ALWAYS 'manual', even for EV. On web we know the
-    // product, but we keep FF's behaviour: workType = 'manual'.
-    context.push(AppRoutes.notPorted('SelectReasonPage'));
-  }
+  /// 'งานนอกเรท': manual request pre-filled from the search fields the user
+  /// filled. FF quirk kept: SearchInsurancePage never passed fromIcon here,
+  /// so workType is always 'manual', even for EV.
+  void _onOffRate(BuildContext context) => startManualRequestFromSearch(
+        context,
+        SearchPackageState.of(product),
+        gated: true,
+        workType: 'manual',
+      );
 
   @override
   Widget build(BuildContext context) {

@@ -10,18 +10,28 @@ App text/data is Thai; code, comments and commit messages are English.
 structure, deploy, security). This file is the working guide for Claude:
 current state, rules, conventions, and what's open.
 
-## Current state (read first) — updated 2026-10-09
+## Current state (read first) — updated 2026-10-10
 
 - **Feature 1 — search insurance package (motor / EV / MC): ported, on `uat`,
   user-tested and confirmed working.**
 - **Feature 2 — quotation list (`/quotations`): ported, on `uat`,
-  user-tested and confirmed working (2026-10-09).** The next feature will be
-  named by the user — wait for it. FF InsuranceListPage → 'ทำประกัน' →
+  user-tested and confirmed working (2026-10-09).** FF InsuranceListPage → 'ทำประกัน' →
   MakeInsuranceListPage (`/quotations/detail`) → QuotationCopy
   (`/quotations/pdf`). Code in `lib/features/quotation_list/`. Verified on
   UAT (ver7) with a real token in headless Chrome: list, search, confirm →
   get-lead-by-id → detail, real quotation PDF in the iframe, 'ดาวน์โหลด PDF'
   new tab, 'ติดตามงาน' history sheet, main button → InsuranceInfoPage1.
+- **Feature 3 — manual request งานนอกเรท (create + edit): ported, pushed to
+  `uat`, waiting for the user to test.** Code in `lib/features/manual_request/`
+  (specs written from the FF source: create = SelectReason → NonePackageBasic
+  → BasicImage1 → BasicImage2 → NonePackageInsurer → Success/UnSuccess; edit =
+  EditPage1 → EditDetail / EditPage2 → EditPage3). Entries: 'นอกเรท' on
+  work-select + result pages, quotation list 'คัดลอก' / 'แก้ไข'. Browser-tested
+  on real UAT data with **stubbed** Firebase sign-in/upload and stubbed
+  save/edit responses (no real request was created). Blocker: Firebase
+  **Anonymous sign-in is disabled** in `sawad-new-ibs` (`ADMIN_ONLY_OPERATION`)
+  → real uploads fail until the user enables it. User scope choice: create +
+  edit; NonePackageSelectedInsurerPage (choose insurer) not in scope yet.
 - Live UAT: https://sawad-new-ibs-uat.web.app (`/motor`, `/ev`, `/mc`,
   `/quotations`).
 - **Prod (`main`) has never been deployed.** Nothing goes to prod until the user
@@ -124,6 +134,20 @@ headers, click by coordinates, screenshot each step. Recreate if needed.
   `LeadApiResult.status1/message1/status2/message2`.
 - FF read list APIs as parallel `info[:].field` lists with `.withoutNulls`
   (a null shifts that column); the port reads each item's own object instead.
+- Manual request: `NonePackageState.instance` replaces FF's ~150
+  `nonePackage*` fields (placeholder texts live inside the values like FF —
+  `isPh()` / `noPh()`); `reset()` = FF RESET_NP. Create pages redirect home and
+  edit pages to `/quotations` when opened without an active flow. Photo
+  upload: `pickAndUploadPhoto` / `uploadSlot` (image_picker → JPEG q30 →
+  `FirebaseStorageRest` with `FirebaseAuthRest` anonymous token). Save/edit
+  are multipart (`ApiClient.postMultipart`). FF functional bugs fixed with a
+  comment (stuck loading sheets, crashes on lower-case brand/model, fridge-box
+  price check, date-cancel reset, page-local upload status); visible UI and
+  visibility rules kept.
+- `QuotationListState.requestReload()` makes an existing list page reload
+  (go_router reuses the page; FF `goNamed` rebuilt it).
+- CSP `connect-src` includes `blob:` (image_picker reads the picked file via a
+  blob URL) and the Firebase Auth / Storage hosts.
 - Quotation list: `QuotationListState.instance` holds the legend filter
   (`searchList1`), the detail items and the PDF URLs. Routes under
   `/quotations` are declared before `/:product/…` (else `/quotations/detail`
@@ -168,12 +192,15 @@ headers, click by coordinates, screenshot each step. Recreate if needed.
 2. **'ชำระเต็มจำนวนเท่านั้น' label** is hidden on web: `InsurerConfig2` needs
    Firebase auth → needs a product decision or an ID token from the bridge.
 3. **Security findings outside the web app:** the shared Basic credential for
-   `getdate-time` ships in the bundle (`_kGetDateTimeBasicAuth`); insurance
+   the local API (`getdate-time`, `check-in/location`) ships in the bundle
+   (`kLocalApiBasicAuth`); the mobile app signs employees into Firebase with a
+   hard-coded shared password (`<empId>@srisawadinsurance.com` / `check_status_firebase.dart`); insurance
    master/search APIs are unauthenticated; the API reflects any `Origin` in CORS.
 4. **GitHub repo is public** — recommended to make it private before the pentest.
 5. Pages reached from the flows but not ported yet open `/not-ported`
-   (InsuranceInfoPage1 / 42 / 5, NonePackageEditPage1, NonePackageBasicPage,
-   NonePackageSelectedInsurerPage, SelectReasonPage, LicenseSelectComponent).
+   (InsuranceInfoPage1 / 42 / 5, NonePackageSelectedInsurerPage,
+   LicenseSelectComponent). Renew / transfer (NonePackageRenewPage) entries
+   are not ported; their branches exist in the manual pages.
 6. JS bridge not started; it should replace the launch-param hand-off.
 7. Quotation list: 'ดูกรมธรรม์' / 'ดู พ.ร.บ' not tried on real data (the
    test user has no 'อนุมัติ' quotation).
@@ -188,3 +215,9 @@ headers, click by coordinates, screenshot each step. Recreate if needed.
     unless the user allows it; headless tests need
     `--disable-features=LocalNetworkAccessChecks`. Check how the host
     Android/iOS WebView behaves on office Wi-Fi vs. mobile data.
+11. **Manual request:** enable Firebase Anonymous sign-in (then retest real
+    uploads + one real submit; user allowed UAT submits). 'นอกเรท' from the
+    search pages and the host WebView camera / file chooser are untested.
+    Branch mapping assumption: launch param `branchCode` = FF
+    `FFAppState().branchCode` (picker shown when longer than 2 chars),
+    `branchName` = `profileUnitCodeName`, owner name = first + last name.

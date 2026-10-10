@@ -230,3 +230,20 @@ String showThaiIdNumberForm(String id) {
   if (id.length < 13) return id;
   return '${id[0]}-${id.substring(1, 5)}-${id.substring(5, 10)}-${id.substring(10, 12)}-${id[12]}';
 }
+
+/// `'1500000'` → `'1,500,000.00'`; null / empty / non-numeric → `'-'`.
+/// Despite the FF name it does add 2 decimals (truncated, padded with 0).
+String showNumberWithCommaWithoutDot(String? number) {
+  if (number == null || number.isEmpty || double.tryParse(number) == null) return '-';
+  final parts = number.split('.');
+  final intPart = parts[0].replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+  final dec = parts.length > 1 ? '${parts[1]}00'.substring(0, 2) : '00';
+  return '$intPart.$dec';
+}
+
+/// 10 digits starting with 0.
+bool checkPhoneNumberInput(String phone) => RegExp(r'^0\d{9}$').hasMatch(phone);
+
+/// Keeps digits and '.' only.
+String removeLetterShowonlyNumber(String text) => text.replaceAll(RegExp('[^0-9.]'), '');
+

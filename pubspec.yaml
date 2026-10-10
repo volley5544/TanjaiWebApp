@@ -44,6 +44,8 @@ dependencies:
     sdk: flutter
   flutter_web_plugins:
     sdk: flutter
+  image_picker: ^1.2.4
+  lottie: ^3.6.1
 
 dev_dependencies:
   flutter_test:
@@ -65,6 +67,7 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/lottie/
 
   # Bundled (not fetched from Google Fonts at runtime) so the app works under a
   # strict CSP inside the host WebView. Noto Sans Thai is the font every

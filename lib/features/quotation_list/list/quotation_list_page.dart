@@ -15,6 +15,7 @@ import '../data/lead_api.dart';
 import '../models/quotation_lead.dart';
 import '../state/quotation_list_state.dart';
 import 'insurance_type_color_sheet.dart';
+import '../../manual_request/entry.dart';
 
 /// FlutterFlow's `black600` theme colour (card text).
 const _black600 = Color(0xFF090F13);
@@ -49,17 +50,28 @@ class _QuotationListPageState extends State<QuotationListPage> {
   bool _loading = true;
   LeadApiResult<QuotationLeadList>? _result;
 
+  late int _reloadTick;
+
   @override
   void initState() {
     super.initState();
     _search.addListener(() => setState(() {}));
+    _reloadTick = _state.reloadTick;
+    _state.addListener(_onStateChanged);
     _load();
   }
 
   @override
   void dispose() {
+    _state.removeListener(_onStateChanged);
     _search.dispose();
     super.dispose();
+  }
+
+  void _onStateChanged() {
+    if (_state.reloadTick == _reloadTick) return;
+    _reloadTick = _state.reloadTick;
+    _refresh();
   }
 
   Future<void> _load() async {
@@ -102,9 +114,9 @@ class _QuotationListPageState extends State<QuotationListPage> {
 
   // ---- card actions -------------------------------------------------------
 
-  /// 'แก้ไข' / 'คัดลอก': FF loads InsuranceRequestDetailAPI into ~100
-  /// nonePackage* fields, then opens the none-package edit flow — not on web.
-  void _openNonePackage(String pageName) => context.push(AppRoutes.notPorted(pageName));
+  /// 'แก้ไข' (edit the request's photos) / 'คัดลอก' (new request from it).
+  void _openNonePackage(QuotationLead lead, {required bool edit}) =>
+      openManualLead(context, leadId: lead.leadId?.toString() ?? '', edit: edit);
 
   /// 'ทำประกัน'.
   Future<void> _makeInsurance(QuotationLead lead) async {
@@ -238,8 +250,8 @@ class _QuotationListPageState extends State<QuotationListPage> {
               padding: const EdgeInsets.only(bottom: 20),
               child: _QuotationCard(
                 lead: lead,
-                onEdit: () => _openNonePackage('NonePackageEditPage1'),
-                onCopy: () => _openNonePackage('NonePackageBasicPage'),
+                onEdit: () => _openNonePackage(lead, edit: true),
+                onCopy: () => _openNonePackage(lead, edit: false),
                 onMakeInsurance: () => _makeInsurance(lead),
               ),
             );

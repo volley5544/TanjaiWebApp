@@ -14,6 +14,7 @@ import '../product_type.dart';
 import '../state/search_package_state.dart';
 import 'insurer_installment.dart';
 import 'widgets/result_widgets.dart';
+import '../../manual_request/entry.dart';
 
 /// Step 2 of the car / EV package search — one card per insurer
 /// (FF `InsurerListOverallPage`, spec 04). Calls `get_package` once and keeps
@@ -157,12 +158,13 @@ class _InsurerOverallPageState extends State<InsurerOverallPage> {
     context.push(AppRoutes.packages(widget.product));
   }
 
-  void _openNonRate() {
-    // FF reset ~160 nonePackage* fields and pre-filled them from the search
-    // form before opening SelectReasonPage(workType: EV ? 'ev' : 'manual').
-    // That flow isn't ported, so the resets are skipped.
-    context.push(AppRoutes.notPorted('SelectReasonPage'));
-  }
+  /// 'งานนอกเรท': manual request pre-filled from the whole search form.
+  void _openNonRate() => startManualRequestFromSearch(
+        context,
+        _state,
+        gated: false,
+        workType: widget.product == ProductType.ev ? 'ev' : 'manual',
+      );
 
   @override
   Widget build(BuildContext context) {

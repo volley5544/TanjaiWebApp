@@ -69,4 +69,31 @@ class ApiClient {
       return const ApiResponse(-1, null);
     }
   }
+
+  /// `multipart/form-data` POST with text fields only (FF `BodyType.MULTIPART`;
+  /// the manual-insurance save / edit APIs). Same -1 / timeout / no-logging
+  /// contract as [postJson].
+  Future<ApiResponse> postMultipart(
+    String url,
+    Map<String, String> fields, {
+    Map<String, String> headers = const {},
+  }) async {
+    try {
+      final req = http.MultipartRequest('POST', Uri.parse(url))
+        ..headers.addAll(headers)
+        ..fields.addAll(fields);
+      final streamed = await _client.send(req).timeout(AppEnvironment.current.apiTimeout);
+      final res = await http.Response.fromStream(streamed);
+      dynamic decoded;
+      try {
+        decoded = jsonDecode(utf8.decode(res.bodyBytes));
+      } catch (_) {
+        decoded = null;
+      }
+      return ApiResponse(res.statusCode, decoded);
+    } catch (e) {
+      if (kDebugMode) debugPrint('[ApiClient] $url failed: $e');
+      return const ApiResponse(-1, null);
+    }
+  }
 }
