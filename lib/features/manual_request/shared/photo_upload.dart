@@ -19,14 +19,14 @@ void showNpSnack(BuildContext context, String message, {bool clearFirst = true})
 const uploadOkText = 'อัพโหลดรูปภาพสำเร็จ';
 const uploadFailText = 'อัพโหลดรูปภาพล้มเหลว กรุณาลองอีกครั้ง';
 
-/// FF `selectMediaWithSourceBottomSheet(imageQuality: 30, allowPhoto: true)`
+/// FF `selectMediaWithSourceBottomSheet(allowPhoto: true)`
 /// + `uploadData` to Storage. Returns the download URL, or null when the user
 /// cancelled or the upload failed.
 ///
 /// Web: the source sheet offers Gallery and Camera like FF mobile (FF's web
 /// build only had Gallery; this app runs in the mobile WebView, where Camera
-/// maps to `<input capture>`). Images are re-encoded as JPEG quality 30 and
-/// capped at 1920 px.
+/// maps to `<input capture>`). Images are scaled to fit 1920×1920 px (never
+/// upscaled) and re-encoded as JPEG quality 50 (user's choice; FF used 30).
 Future<String?> pickAndUploadPhoto(BuildContext context) async {
   final source = await showModalBottomSheet<ImageSource>(
     context: context,
@@ -60,7 +60,7 @@ Future<String?> pickAndUploadPhoto(BuildContext context) async {
 
   final XFile? file;
   try {
-    file = await ImagePicker().pickImage(source: source, imageQuality: 30, maxWidth: 1920, maxHeight: 1920);
+    file = await ImagePicker().pickImage(source: source, imageQuality: 50, maxWidth: 1920, maxHeight: 1920);
   } catch (_) {
     return null;
   }

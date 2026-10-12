@@ -56,7 +56,7 @@ NonePackageSelectedInsurerPage, LicenseSelectComponent) open a placeholder
   the insurers**) → `/manual/success` or `/manual/unsuccess`.
 - Edit ('แก้ไข'): `/manual/edit` (branch, one insurer) → detail → photos →
   documents → `POST /api/manual-insurance/edit` → back to the reloaded list.
-- Photos: picked with `image_picker` (Gallery / Camera sheet, JPEG q30),
+- Photos: picked with `image_picker` (Gallery / Camera sheet, JPEG quality 50, max 1920×1920 px),
   uploaded to Firebase Storage `users/<anonUid>/uploads/…` via REST with an
   **anonymous Firebase identity** (`FirebaseAuthRest`); the API receives the
   download URLs, as with the mobile app. Firebase is per environment: UAT →
