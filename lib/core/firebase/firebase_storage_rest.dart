@@ -19,7 +19,7 @@ class FirebaseStorageRest {
     final uid = FirebaseAuthRest.uid;
     if (token == null || uid == null || uid.isEmpty) return null;
 
-    const bucket = AppEnvironment.storageBucket;
+    final bucket = AppEnvironment.current.storageBucket;
     final path = 'users/$uid/uploads/${DateTime.now().microsecondsSinceEpoch}.$ext';
     try {
       final res = await http

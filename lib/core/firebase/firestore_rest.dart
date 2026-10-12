@@ -20,7 +20,7 @@ class FirestoreRest {
   String? idToken;
 
   String get _base =>
-      'https://firestore.googleapis.com/v1/projects/${AppEnvironment.firestoreProjectId}'
+      'https://firestore.googleapis.com/v1/projects/${AppEnvironment.current.firebaseProjectId}'
       '/databases/(default)/documents';
 
   Map<String, String> get _headers => {

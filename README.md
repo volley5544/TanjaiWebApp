@@ -19,7 +19,7 @@ results and look.
 | Search insurance package — EV | `/ev` | ported, user-tested on UAT |
 | Search insurance package — motorcycle | `/mc` | ported, user-tested on UAT |
 | Quotation list (InsuranceListPage) → detail (MakeInsuranceListPage) → quotation PDF (QuotationCopy) | `/quotations` | ported, user-tested on UAT |
-| Manual request งานนอกเรท — create (SelectReason → form → photos → documents → insurers → submit) and edit photos ('แก้ไข') | `/manual/*` (from 'นอกเรท' / 'คัดลอก' / 'แก้ไข') | ported, browser-tested on UAT data; **photo upload needs Firebase Anonymous sign-in enabled** |
+| Manual request งานนอกเรท — create (SelectReason → form → photos → documents → insurers → submit) and edit photos ('แก้ไข') | `/manual/*` (from 'นอกเรท' / 'คัดลอก' / 'แก้ไข') | ported, browser-tested on UAT data; waiting for user test |
 
 Live UAT: https://sawad-new-ibs-uat.web.app. Prod has not been deployed yet.
 
@@ -59,9 +59,10 @@ NonePackageSelectedInsurerPage, LicenseSelectComponent) open a placeholder
 - Photos: picked with `image_picker` (Gallery / Camera sheet, JPEG q30),
   uploaded to Firebase Storage `users/<anonUid>/uploads/…` via REST with an
   **anonymous Firebase identity** (`FirebaseAuthRest`); the API receives the
-  download URLs, as with the mobile app. Requires Authentication → Sign-in
-  method → **Anonymous** enabled in project `sawad-new-ibs` (currently off →
-  every upload shows 'อัพโหลดรูปภาพล้มเหลว').
+  download URLs, as with the mobile app. Firebase is per environment: UAT →
+  `sawad-new-ibs-uat` (Anonymous enabled, bucket
+  `sawad-new-ibs-uat.appspot.com`), prod → `sawad-new-ibs` (enable Anonymous
+  there before the prod deploy).
 - After a submit the insurance support team uploads the insurer quotation in
   the back office; the request then reaches the choose-insurer step
   (NonePackageSelectedInsurerPage — not ported yet).
@@ -123,6 +124,7 @@ lib/
       shared/              pickers + shared form widgets
       results/ detail/ compare/ customer/ quotation/ work_select/
 tools/firestore-inspect/   read-only Firestore viewer (uses `firebase login`)
+tools/firestore-copy/      copy named collections prod → UAT (config only; refuses to write prod)
 ```
 
 ## Deploy

@@ -12,15 +12,24 @@ enum AppEnvironment {
   uat(
     insuranceApiBase: 'https://is-dev.swpfin.com/ssw_tanjai_api_dev',
     localApiBase: 'https://prd-proxy.swpfin.com:8096',
+    firebaseProjectId: 'sawad-new-ibs-uat',
+    firebaseApiKey: 'AIzaSyBr2ubqZaPAo5iL8mYztzGDZP8GYO3IoWU',
+    storageBucket: 'sawad-new-ibs-uat.appspot.com',
   ),
   prod(
     insuranceApiBase: 'https://tanjai.swpfin.com/ssw_tanjai_api',
     localApiBase: 'https://prd-proxy.swpfin.com:8096',
+    firebaseProjectId: 'sawad-new-ibs',
+    firebaseApiKey: 'AIzaSyDCTqsBpj5Hf4NGjKFHtmg_xArMIRiQEL4',
+    storageBucket: 'sawad-new-ibs.appspot.com',
   );
 
   const AppEnvironment({
     required this.insuranceApiBase,
     required this.localApiBase,
+    required this.firebaseProjectId,
+    required this.firebaseApiKey,
+    required this.storageBucket,
   });
 
   /// Insurance API base (`FFAppState().apiUrlInsuranceAppState` in the mobile
@@ -38,18 +47,19 @@ enum AppEnvironment {
   static const AppEnvironment current =
       String.fromEnvironment('ENV') == 'prod' ? AppEnvironment.prod : AppEnvironment.uat;
 
-  /// Firebase project whose Firestore holds the app's master data. The mobile
-  /// app reads everything (both envs) from `sawad-new-ibs`; the uat project's
-  /// Firestore is empty, so both builds read prod's publicly readable docs.
-  static const String firestoreProjectId = 'sawad-new-ibs';
+  /// Firebase project of this environment: Firestore reads, anonymous
+  /// sign-in and photo Storage. UAT uses its own project (Firestore copied
+  /// from prod with tools/firestore-copy — config / master data only);
+  /// prod uses `sawad-new-ibs`, the mobile app's project.
+  final String firebaseProjectId;
 
-  /// Public web API key of `sawad-new-ibs` (the same one the FF mobile/web
-  /// build ships). It only identifies the project to Google's endpoints and
-  /// grants nothing on its own; used for anonymous sign-in (photo uploads).
-  static const String firebaseApiKey = 'AIzaSyDCTqsBpj5Hf4NGjKFHtmg_xArMIRiQEL4';
+  /// Public web API key of [firebaseProjectId]. It only identifies the
+  /// project to Google's endpoints and grants nothing on its own; used for
+  /// anonymous sign-in (photo uploads, auth-only Firestore docs).
+  final String firebaseApiKey;
 
-  /// Cloud Storage bucket the mobile app uploads request photos to.
-  static const String storageBucket = 'sawad-new-ibs.appspot.com';
+  /// Cloud Storage bucket request photos are uploaded to.
+  final String storageBucket;
 
   /// Hard timeout for every API call (the FlutterFlow app had none).
   Duration get apiTimeout => const Duration(seconds: 60);

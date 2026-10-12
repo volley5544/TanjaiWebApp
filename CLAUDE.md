@@ -109,9 +109,19 @@ headers, click by coordinates, screenshot each step. Recreate if needed.
 
 - `ENV` dart-define selects the env (default `uat`), `lib/core/config/app_environment.dart`.
   API hosts are compiled in, never read from the URL.
-- **All Firestore data lives in prod project `sawad-new-ibs`** (UAT Firestore is
-  empty). Read via REST without the SDK (`FirestoreRest`). Docs needing auth
-  (`InsurerConfig2`, `hideInAppContent`) return 403 → defaults are used.
+- **Firebase is per environment** (`AppEnvironment.firebaseProjectId` /
+  `firebaseApiKey` / `storageBucket`): UAT build → `sawad-new-ibs-uat`, prod
+  build → `sawad-new-ibs` (the mobile app's project). Used for Firestore reads
+  (REST, `FirestoreRest`), anonymous sign-in and photo Storage. Anonymous
+  sign-in is enabled in UAT (user, 2026-10-12); **enable it in `sawad-new-ibs`
+  before the prod deploy.**
+- UAT Firestore holds **only the config the web reads**, copied from prod
+  with `tools/firestore-copy/copy.mjs` (2026-10-12): `Vehicle_Type_Dropdown`,
+  `hideInAppContent`, `InsurerConfig2` (user's instruction: copy only needed
+  data — prod also holds user data and credentials). Re-run the copy when a
+  feature starts reading another collection or prod config changes. Docs
+  needing auth (`InsurerConfig2`, `hideInAppContent`) are read with the
+  anonymous token only on the insurer page; elsewhere they 403 → defaults.
 - `WEB_VERSION` = GitHub Actions `run_number`; shown as "(UAT ver N)" on UAT and
   logged at boot (`[TanjaiWeb] env=… webVersion=…`).
 - CI: `.github/workflows/deploy-uat.yml` / `deploy-prod.yml`, secrets
@@ -176,7 +186,9 @@ headers, click by coordinates, screenshot each step. Recreate if needed.
 ## Security (pentest-ready — every feature)
 
 - Never commit or use the service-account keys in `etc/secret/` (`etc/` is
-  git-ignored). Firestore: only via `tools/firestore-inspect/read.mjs`.
+  git-ignored). Firestore: read via `tools/firestore-inspect/read.mjs`; copy
+  prod → UAT only with `tools/firestore-copy/copy.mjs` (refuses to write to
+  prod; copy only collections the web reads).
 - Don't create real records in UAT (e.g. quotation save) without asking.
 - Launch params (`token, empId, firstName, lastName, phone, branchCode,
   branchName`) are regex-validated, then stripped from the URL by `UrlCleaner`
@@ -219,8 +231,10 @@ headers, click by coordinates, screenshot each step. Recreate if needed.
     unless the user allows it; headless tests need
     `--disable-features=LocalNetworkAccessChecks`. Check how the host
     Android/iOS WebView behaves on office Wi-Fi vs. mobile data.
-11. **Manual request:** enable Firebase Anonymous sign-in (then retest real
-    uploads + one real submit; user allowed UAT submits). 'นอกเรท' from the
+11. **Manual request:** Anonymous sign-in is on in UAT and uploads to
+    `sawad-new-ibs-uat.appspot.com` were verified (2026-10-12); retest real
+    uploads in the app + one real submit (user allowed UAT submits). Before
+    prod: enable Anonymous in `sawad-new-ibs`. 'นอกเรท' from the
     search pages and the host WebView camera / file chooser are untested.
     Branch mapping assumption: launch param `branchCode` = FF
     `FFAppState().branchCode` (picker shown when longer than 2 chars),

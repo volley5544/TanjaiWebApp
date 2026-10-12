@@ -16,7 +16,7 @@ import '../config/app_environment.dart';
 /// the web its own uid (and makes auth-only Firestore docs readable).
 ///
 /// Requires Authentication → Sign-in method → **Anonymous** to be enabled in
-/// the `sawad-new-ibs` project; until then [idToken] returns null and callers
+/// the environment's Firebase project; until then [idToken] returns null and callers
 /// show their normal failure message.
 class FirebaseAuthRest {
   FirebaseAuthRest._();
@@ -46,7 +46,7 @@ class FirebaseAuthRest {
     try {
       final res = await http
           .post(
-            Uri.parse('$_signUpUrl?key=${AppEnvironment.firebaseApiKey}'),
+            Uri.parse('$_signUpUrl?key=${AppEnvironment.current.firebaseApiKey}'),
             headers: const {'Content-Type': 'application/json'},
             body: jsonEncode({'returnSecureToken': true}),
           )
