@@ -147,6 +147,9 @@ headers, click by coordinates, screenshot each step. Recreate if needed.
   visibility rules kept.
 - `QuotationListState.requestReload()` makes an existing list page reload
   (go_router reuses the page; FF `goNamed` rebuilt it).
+- Hosting: every extension-less path (`/`, `/manual/basic`, … = SPA
+  rewrites to index.html) is `no-cache` (regex `^/[^.]*$` in `firebase.json`);
+  otherwise browsers kept the HTML — and its old CSP header — for an hour.
 - CSP `connect-src` includes `blob:` (image_picker reads the picked file via a
   blob URL) and the Firebase Auth / Storage hosts.
 - Quotation list: `QuotationListState.instance` holds the legend filter
