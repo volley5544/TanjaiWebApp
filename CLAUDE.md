@@ -41,6 +41,7 @@ current state, rules, conventions, and what's open.
   - `f71435f` white-page loading view for on-open data loads
   - `1f045d2` "(UAT ver<build>)" tag in every AppBar
   - `6a4c1e0` port of the quotation list feature (+ doc commits)
+  - `556c571` port of the manual request (งานนอกเรท) create + edit flows
 - JS bridge to the host app: **not started** ("do nothing yet"). Launch params
   are the interim hand-off.
 
