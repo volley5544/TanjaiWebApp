@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../core/firebase/firebase_storage_rest.dart';
 import '../../../core/widgets/loading_scene.dart';
+import 'image_compress.dart';
 
 /// FF upload snackbars: white text on 70 % black, 3 s.
 void showNpSnack(BuildContext context, String message, {bool clearFirst = true}) {
@@ -25,8 +26,9 @@ const uploadFailText = 'อัพโหลดรูปภาพล้มเห�
 ///
 /// Web: the source sheet offers Gallery and Camera like FF mobile (FF's web
 /// build only had Gallery; this app runs in the mobile WebView, where Camera
-/// maps to `<input capture>`). Images are scaled to fit 1920×1920 px (never
-/// upscaled) and re-encoded as JPEG quality 50 (user's choice; FF used 30).
+/// maps to `<input capture>`). Every image — PNG included — is scaled to fit
+/// 1920×1920 px (never upscaled) and re-encoded as JPEG quality 50 (user's
+/// choice; FF used 30), inside the loading overlay ([compressToJpeg]).
 Future<String?> pickAndUploadPhoto(BuildContext context) async {
   final source = await showModalBottomSheet<ImageSource>(
     context: context,
@@ -60,24 +62,28 @@ Future<String?> pickAndUploadPhoto(BuildContext context) async {
 
   final XFile? file;
   try {
-    file = await ImagePicker().pickImage(source: source, imageQuality: 50, maxWidth: 1920, maxHeight: 1920);
+    // No resize options: image_picker would resize inside pickImage, before
+    // the loading overlay, and skip quality for PNG. [compressToJpeg] does it.
+    file = await ImagePicker().pickImage(source: source);
   } catch (_) {
     return null;
   }
   if (file == null || !context.mounted) return null;
   final picked = file;
   return withLoading(context, () async {
-    final List<int> raw;
+    final Uint8List original;
     try {
-      raw = await picked.readAsBytes(); // web: fetches a blob: URL (CSP connect-src blob:)
+      original = await picked.readAsBytes(); // web: fetches a blob: URL (CSP connect-src blob:)
     } catch (_) {
       return null;
     }
-    final bytes = Uint8List.fromList(raw);
-    final mime = picked.mimeType ?? '';
-    final isPng = mime == 'image/png';
+    // JPEG quality 50, within 1920×1920 (user's choice; FF used quality 30).
+    final jpeg = await compressToJpeg(picked.path, original, maxSide: 1920, quality: 0.5);
+    if (jpeg != null) return FirebaseStorageRest.uploadImage(jpeg, ext: 'jpg', contentType: 'image/jpeg');
+    // Not decodable by the browser: upload the original as-is.
+    final isPng = picked.mimeType == 'image/png';
     return FirebaseStorageRest.uploadImage(
-      bytes,
+      original,
       ext: isPng ? 'png' : 'jpg',
       contentType: isPng ? 'image/png' : 'image/jpeg',
     );

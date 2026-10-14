@@ -149,7 +149,7 @@ headers, click by coordinates, screenshot each step. Recreate if needed.
   `nonePackage*` fields (placeholder texts live inside the values like FF —
   `isPh()` / `noPh()`); `reset()` = FF RESET_NP. Create pages redirect home and
   edit pages to `/quotations` when opened without an active flow. Photo
-  upload: `pickAndUploadPhoto` / `uploadSlot` (image_picker → JPEG q50, max 1920×1920 →
+  upload: `pickAndUploadPhoto` / `uploadSlot` (image_picker, no resize options → `compressToJpeg` canvas: every image, PNG included, → JPEG q50 within 1920×1920, inside the loading overlay →
   `FirebaseStorageRest` with `FirebaseAuthRest` anonymous token). Save/edit
   are multipart (`ApiClient.postMultipart`). FF functional bugs fixed with a
   comment (stuck loading sheets, crashes on lower-case brand/model, fridge-box
