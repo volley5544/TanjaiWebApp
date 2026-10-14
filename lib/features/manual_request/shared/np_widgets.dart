@@ -293,17 +293,34 @@ class NpReadBox extends StatelessWidget {
       );
 }
 
+/// "See image" icon of an upload row: the photo uploaded in this flow
+/// ([url]) or, on edit pages before a re-upload, the one already on the
+/// request ([existingUrl]). Hidden when there is neither.
+Widget? npSeeImageIcon(BuildContext context, String url, {String existingUrl = '', double size = 24}) {
+  final show = url.isNotEmpty ? url : existingUrl;
+  if (show.isEmpty) return null;
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 4),
+    child: NpViewIcon(onTap: () => showNpImages(context, [show]), size: size),
+  );
+}
+
 /// Status icon of upload rows: green tick / red cross.
 Widget npStatusIcon(bool done, {double size = 24, Color fail = const Color(0xFFFC0A0A)}) =>
     Icon(done ? Icons.check : Icons.close, color: done ? npCheckGreen : fail, size: size);
 
 /// Image2 / EditPage3 upload row: 'ถ่ายรูป' (125×45) + status + icons.
 class NpPhotoRow extends StatelessWidget {
-  const NpPhotoRow({super.key, required this.done, required this.onTap, this.viewIcon});
+  const NpPhotoRow({super.key, required this.url, required this.onTap, this.existingUrl = ''});
 
-  final bool done;
+  /// Photo uploaded in this flow ('' = not yet).
+  final String url;
+
+  /// Edit pages: photo already on the request.
+  final String existingUrl;
   final VoidCallback onTap;
-  final Widget? viewIcon;
+
+  bool get done => url.isNotEmpty;
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -327,7 +344,7 @@ class NpPhotoRow extends StatelessWidget {
               padding: const EdgeInsets.only(left: 12),
               child: Text(done ? 'สถานะ : อัพโหลดแล้ว' : 'สถานะ : ยังไม่อัพโหลด', style: AppText.bodyMedium),
             ),
-            ?viewIcon,
+            ?npSeeImageIcon(context, url, existingUrl: existingUrl),
             npStatusIcon(done),
           ],
         ),
@@ -365,23 +382,27 @@ class NpAttachRow extends StatelessWidget {
   const NpAttachRow({
     super.key,
     required this.title,
-    required this.done,
+    required this.url,
     required this.onTap,
     this.tag,
     this.titleExtras = const [],
-    this.viewIcon,
+    this.existingUrl = '',
   });
 
   final String title;
   final String? tag;
   final List<Widget> titleExtras;
-  final bool done;
+  /// Photo uploaded in this flow ('' = not yet).
+  final String url;
+
+  /// Edit pages: photo already on the request.
+  final String existingUrl;
   final VoidCallback onTap;
-  final Widget? viewIcon;
 
   @override
   Widget build(BuildContext context) {
     final w = MediaQuery.sizeOf(context).width;
+    final done = url.isNotEmpty;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
       child: Container(
@@ -426,7 +447,7 @@ class NpAttachRow extends StatelessWidget {
                       child: Text('สถานะ :', style: AppText.bodyMedium),
                     ),
                     Expanded(child: Text(done ? 'อัพโหลดแล้ว' : 'ยังไม่อัพโหลด', style: AppText.bodyMedium)),
-                    ?viewIcon,
+                    ?npSeeImageIcon(context, url, existingUrl: existingUrl),
                     npStatusIcon(done),
                   ],
                 ),
@@ -577,14 +598,14 @@ class VehicleDiagram extends StatelessWidget {
 /// Status card under a diagram: 'ถ่ายรูปทรัพย์สิน' + n rows of
 /// 'n.สถานะ : อัพโหลดเรียบร้อย' / 'ยังไม่อัพโหลด' with ✓ / ✕.
 class PhotoStatusCard extends StatelessWidget {
-  const PhotoStatusCard({super.key, required this.done, this.subtitle, this.viewers});
+  const PhotoStatusCard({super.key, required this.urls, this.subtitle, this.existing});
 
-  /// Per row (1-based order).
-  final List<bool> done;
+  /// Photo uploaded in this flow per row (1-based order; '' = not yet).
+  final List<String> urls;
   final String? subtitle;
 
-  /// Optional "view existing image" per row (edit flow); null = no icon.
-  final List<VoidCallback?>? viewers;
+  /// Edit pages: photo already on the request per row.
+  final List<String>? existing;
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -610,7 +631,7 @@ class PhotoStatusCard extends StatelessWidget {
                   ],
                 ),
               ),
-              for (var i = 0; i < done.length; i++)
+              for (var i = 0; i < urls.length; i++)
                 Padding(
                   padding: EdgeInsets.only(top: i == 0 ? 12 : 4),
                   child: SizedBox(
@@ -624,14 +645,20 @@ class PhotoStatusCard extends StatelessWidget {
                             child: Padding(
                               padding: const EdgeInsets.only(left: 12),
                               child: Text(
-                                '${i + 1}.สถานะ : ${done[i] ? 'อัพโหลดเรียบร้อย' : 'ยังไม่อัพโหลด'}',
+                                '${i + 1}.สถานะ : ${urls[i].isNotEmpty ? 'อัพโหลดเรียบร้อย' : 'ยังไม่อัพโหลด'}',
                                 style: AppText.style(fontSize: 12),
                               ),
                             ),
                           ),
-                          if (viewers != null && viewers![i] != null)
-                            Expanded(child: Center(child: NpViewIcon(onTap: viewers![i]!, size: 18))),
-                          Expanded(child: Center(child: npStatusIcon(done[i], size: 18, fail: const Color(0xFFFF2B2B)))),
+                          Expanded(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                ?npSeeImageIcon(context, urls[i], existingUrl: existing?[i] ?? '', size: 18),
+                                npStatusIcon(urls[i].isNotEmpty, size: 18, fail: const Color(0xFFFF2B2B)),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ),

@@ -155,6 +155,10 @@ headers, click by coordinates, screenshot each step. Recreate if needed.
   comment (stuck loading sheets, crashes on lower-case brand/model, fridge-box
   price check, date-cancel reset, page-local upload status); visible UI and
   visibility rules kept.
+- Upload rows (`NpPhotoRow`, `NpAttachRow`, `PhotoStatusCard`) take the
+  uploaded URL (+ `existingUrl` on edit pages) and show one "see image" icon
+  next to ✓: the new upload, else the photo already on the request (user
+  request 2026-10-14; FF had no such icon on create pages).
 - `QuotationListState.requestReload()` makes an existing list page reload
   (go_router reuses the page; FF `goNamed` rebuilt it).
 - Hosting: every extension-less path (`/`, `/manual/basic`, … = SPA

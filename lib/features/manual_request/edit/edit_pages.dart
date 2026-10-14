@@ -409,10 +409,7 @@ class _EditPage2State extends State<EditPage2> {
     _s.notify();
   }
 
-  List<VoidCallback?> _viewers(List<CarSlot> slots) => [
-        for (final c in slots)
-          _existing(_s, c.field).isEmpty ? null : () => showNpImages(context, [_existing(_s, c.field)]),
-      ];
+  List<String> _existingFor(List<CarSlot> slots) => [for (final c in slots) _existing(_s, c.field)];
 
   @override
   Widget build(BuildContext context) {
@@ -468,8 +465,8 @@ class _EditPage2State extends State<EditPage2> {
                           onTap: _onSpot,
                         ),
                         PhotoStatusCard(
-                          done: [for (final c in carSlots) s.carPhoto(c).isNotEmpty],
-                          viewers: _viewers(carSlots),
+                          urls: [for (final c in carSlots) s.carPhoto(c)],
+                          existing: _existingFor(carSlots),
                         ),
                         if (trailer) ...[
                           VehicleDiagram(
@@ -479,8 +476,8 @@ class _EditPage2State extends State<EditPage2> {
                             onTap: _onSpot,
                           ),
                           PhotoStatusCard(
-                            done: [for (final c in CarSlot.trailer) s.carPhoto(c).isNotEmpty],
-                            viewers: _viewers(CarSlot.trailer),
+                            urls: [for (final c in CarSlot.trailer) s.carPhoto(c)],
+                            existing: _existingFor(CarSlot.trailer),
                           ),
                         ],
                       ],
@@ -533,10 +530,7 @@ class _EditPage3State extends State<EditPage3> {
     _s.notify();
   }
 
-  Widget? _view(String field) {
-    final url = _existing(_s, field);
-    return url.isEmpty ? null : NpViewIcon(onTap: () => showNpImages(context, [url]));
-  }
+  String _old(String field) => _existing(_s, field);
 
   Map<String, String> _body() {
     final s = _s;
@@ -613,14 +607,14 @@ class _EditPage3State extends State<EditPage3> {
                           ),
                           const NpPhotoTitle('1. หน้าเล่มรถ รายการจดทะเบียนล่าสุด', required: true),
                           NpPhotoRow(
-                            done: s.blueBookUrl.isNotEmpty,
-                            viewIcon: _view('image_bluebook'),
+                            url: s.blueBookUrl,
+                            existingUrl: _old('image_bluebook'),
                             onTap: () => _upload((u) => s.blueBookUrl = u),
                           ),
                           const NpPhotoTitle('2.สำเนาบัตรประชาชนผู้เอาประกัน', required: true),
                           NpPhotoRow(
-                            done: s.idCardUrl.isNotEmpty,
-                            viewIcon: _view('image_idcard'),
+                            url: s.idCardUrl,
+                            existingUrl: _old('image_idcard'),
                             onTap: () => _upload((u) => s.idCardUrl = u),
                           ),
                           NpPhotoTitle(
@@ -646,7 +640,7 @@ class _EditPage3State extends State<EditPage3> {
                           for (var i = 0; i < 5; i++)
                             if (i == 0 || s.otherPhotos[i - 1].isNotEmpty)
                               NpPhotoRow(
-                                done: s.otherPhotos[i].isNotEmpty,
+                                url: s.otherPhotos[i],
                                 onTap: () => _upload((u) => s.otherPhotos[i] = u),
                               ),
                           const SizedBox(height: 16),
@@ -690,8 +684,8 @@ class _EditPage3State extends State<EditPage3> {
             ),
             NpAttachRow(
               title: '1. ตารางกรมธรรม์เดิม',
-              done: s.oldVmiImageUrl.isNotEmpty,
-              viewIcon: _view('old_VMI_image'),
+              url: s.oldVmiImageUrl,
+              existingUrl: _old('old_VMI_image'),
               onTap: () => _upload((u) => s.oldVmiImageUrl = u),
             ),
             NpAttachRow(
@@ -710,14 +704,14 @@ class _EditPage3State extends State<EditPage3> {
                   ),
                 ),
               ],
-              done: s.idCardUrl.isNotEmpty,
-              viewIcon: _view('image_idcard'),
+              url: s.idCardUrl,
+              existingUrl: _old('image_idcard'),
               onTap: () => _upload((u) => s.idCardUrl = u),
             ),
             if (s.buttonCorporation)
               NpAttachRow(
                 title: '3. หนังสือจดทะเบียนบริษัท',
-                done: s.companyBookUrl.isNotEmpty,
+                url: s.companyBookUrl,
                 onTap: () => _upload((u) => s.companyBookUrl = u),
               ),
           ],

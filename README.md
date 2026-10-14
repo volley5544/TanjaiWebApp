@@ -63,6 +63,8 @@ NonePackageSelectedInsurerPage, LicenseSelectComponent) open a placeholder
   `sawad-new-ibs-uat` (Anonymous enabled, bucket
   `sawad-new-ibs-uat.appspot.com`), prod → `sawad-new-ibs` (enable Anonymous
   there before the prod deploy).
+- Every uploaded photo gets a "see image" icon next to its ✓ (on edit pages
+  it shows the photo already on the request until a new one is uploaded).
 - After a submit the insurance support team uploads the insurer quotation in
   the back office; the request then reaches the choose-insurer step
   (NonePackageSelectedInsurerPage — not ported yet).

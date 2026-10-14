@@ -101,7 +101,7 @@ class _BasicImage1PageState extends State<BasicImage1Page> {
                         ),
                         PhotoStatusCard(
                           subtitle: s.isTruck ? 'บังคับถ่ายรูปให้ครบ 8 รูป' : 'บังคับถ่ายรูปให้ครบ 9 รูป',
-                          done: [for (final c in carSlots) s.carPhoto(c).isNotEmpty],
+                          urls: [for (final c in carSlots) s.carPhoto(c)],
                         ),
                         if (s.hasTrailer) ...[
                           VehicleDiagram(
@@ -110,7 +110,7 @@ class _BasicImage1PageState extends State<BasicImage1Page> {
                             spots: trailerSpotsCreate,
                             onTap: _onSpot,
                           ),
-                          PhotoStatusCard(done: [for (final c in CarSlot.trailer) s.carPhoto(c).isNotEmpty]),
+                          PhotoStatusCard(urls: [for (final c in CarSlot.trailer) s.carPhoto(c)]),
                         ],
                       ],
                     ),
@@ -223,9 +223,9 @@ class _BasicImage2PageState extends State<BasicImage2Page> {
                             child: Text('ถ่ายรูปเอกสารเพิ่มเติม', style: AppText.style(fontSize: 16, color: npSectionNavy)),
                           ),
                           const NpPhotoTitle('1. หน้าเล่มรถ รายการจดทะเบียนล่าสุด', required: true),
-                          NpPhotoRow(done: s.blueBookUrl.isNotEmpty, onTap: () => _upload((u) => s.blueBookUrl = u)),
+                          NpPhotoRow(url: s.blueBookUrl, onTap: () => _upload((u) => s.blueBookUrl = u)),
                           NpPhotoTitle('2.สำเนาบัตรประชาชนผู้เอาประกัน', required: s.workType == 'ev' && !s.flagRenew),
-                          NpPhotoRow(done: s.idCardUrl.isNotEmpty, onTap: () => _upload((u) => s.idCardUrl = u)),
+                          NpPhotoRow(url: s.idCardUrl, onTap: () => _upload((u) => s.idCardUrl = u)),
                           NpPhotoTitle(
                             '3. เอกสารอื่นๆ เช่น เล่มรถหางพ่วง',
                             trailing: Padding(
@@ -235,7 +235,7 @@ class _BasicImage2PageState extends State<BasicImage2Page> {
                           ),
                           for (var i = 0; i < 5; i++)
                             if (i == 0 || others[i - 1].isNotEmpty)
-                              NpPhotoRow(done: others[i].isNotEmpty, onTap: () => _upload((u) => s.otherPhotos[i] = u)),
+                              NpPhotoRow(url: others[i], onTap: () => _upload((u) => s.otherPhotos[i] = u)),
                           Padding(
                             padding: const EdgeInsets.fromLTRB(12, 20, 12, 0),
                             child: Container(

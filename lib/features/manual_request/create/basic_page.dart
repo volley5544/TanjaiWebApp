@@ -690,7 +690,7 @@ class _BasicPageState extends State<BasicPage> {
             NpAttachRow(
               title: '1. ตารางกรมธรรม์เดิม',
               tag: '(บังคับอัพโหลดรูป)',
-              done: s.oldVmiImageUrl.isNotEmpty,
+              url: s.oldVmiImageUrl,
               onTap: () => _uploadTransferDoc((u) => s.oldVmiImageUrl = u),
             ),
             NpAttachRow(
@@ -710,14 +710,14 @@ class _BasicPageState extends State<BasicPage> {
                   ),
                 ),
               ],
-              done: s.idCardUrl.isNotEmpty,
+              url: s.idCardUrl,
               onTap: () => _uploadTransferDoc((u) => s.idCardUrl = u),
             ),
             if (s.buttonCorporation)
               NpAttachRow(
                 title: '3. หนังสือจดทะเบียนบริษัท',
                 tag: '(บังคับอัพโหลดรูป)',
-                done: s.companyBookUrl.isNotEmpty,
+                url: s.companyBookUrl,
                 onTap: () => _uploadTransferDoc((u) => s.companyBookUrl = u),
               ),
           ],
