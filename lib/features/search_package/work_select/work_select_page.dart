@@ -27,13 +27,15 @@ class WorkSelectPage extends StatelessWidget {
   void _back(BuildContext context) => context.go(AppRoutes.search(product));
 
   /// 'งานนอกเรท': manual request pre-filled from the search fields the user
-  /// filled. FF quirk kept: SearchInsurancePage never passed fromIcon here,
-  /// so workType is always 'manual', even for EV.
+  /// filled. FF meant `fromIcon == 'EV' ? 'ev' : 'manual'`, but
+  /// SearchInsurancePage never passed fromIcon, so EV became 'manual' and the
+  /// basic page asked for car photos. Fixed (user, 2026-10-15): EV → 'ev',
+  /// so the photos step is skipped for every cover type, as in the app.
   void _onOffRate(BuildContext context) => startManualRequestFromSearch(
         context,
         SearchPackageState.of(product),
         gated: true,
-        workType: 'manual',
+        workType: product == ProductType.ev ? 'ev' : 'manual',
       );
 
   @override

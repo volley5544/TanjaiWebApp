@@ -10,9 +10,8 @@ import 'data/manual_request_api.dart';
 import 'state/none_package_state.dart';
 
 /// 'นอกเรท' on the work-select page ([gated]: copy only the search fields the
-/// user filled) or the result pages (copy all). FF quirk kept: work-select
-/// always opened `workType: 'manual'` (it never received fromIcon), the
-/// result pages 'ev' for EV.
+/// user filled) or the result pages (copy all). Both open `workType: 'ev'`
+/// for EV (FF work-select lost it — it never received fromIcon; fixed).
 void startManualRequestFromSearch(
   BuildContext context,
   SearchPackageState st, {

@@ -31,6 +31,11 @@ current state, rules, conventions, and what's open.
   'แก้ไข'. User scope choice: create + edit; NonePackageSelectedInsurerPage
   (choose insurer, after the insurance team uploads the insurer quotation)
   is the natural next step — not ported yet.
+  - EV fix (user, 2026-10-15): 'นอกเรท' on the EV work-select page now
+    opens `workType: 'ev'` (FF lost `fromIcon`, so EV ran as 'manual' and
+    asked for car photos). With 'ev' the photos step is skipped for every
+    cover type, the ID card photo is required and the save sends
+    `ev_flag: 'Y'` — the FF rules for EV.
   - Follow-up changes on request: per-environment Firebase (UAT build →
     `sawad-new-ibs-uat`, only needed Firestore config copied from prod);
     every photo → JPEG q50 within 1920×1920; "see image" icon next to every
