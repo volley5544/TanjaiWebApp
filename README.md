@@ -9,7 +9,7 @@ results and look.
 |---|---|
 | Flutter | **3.47.6** (`~/DevelopTools/flutter3.47.6/bin/flutter`) |
 | Envs | `uat` branch → `sawad-new-ibs-uat` Hosting · `main` branch → `sawad-new-ibs` Hosting |
-| Data | Insurance API (per env, compiled in) + public Firestore docs of `sawad-new-ibs` (REST, no SDK) |
+| Data | Insurance API (per env, compiled in) + Firebase per env (UAT `sawad-new-ibs-uat`, prod `sawad-new-ibs`): Firestore config, anonymous sign-in, photo Storage — REST, no SDK |
 
 ## Ported features
 
@@ -19,7 +19,7 @@ results and look.
 | Search insurance package — EV | `/ev` | ported, user-tested on UAT |
 | Search insurance package — motorcycle | `/mc` | ported, user-tested on UAT |
 | Quotation list (InsuranceListPage) → detail (MakeInsuranceListPage) → quotation PDF (QuotationCopy) | `/quotations` | ported, user-tested on UAT |
-| Manual request งานนอกเรท — create (SelectReason → form → photos → documents → insurers → submit) and edit photos ('แก้ไข') | `/manual/*` (from 'นอกเรท' / 'คัดลอก' / 'แก้ไข') | ported, browser-tested on UAT data; waiting for user test |
+| Manual request งานนอกเรท — create (SelectReason → form → photos → documents → insurers → submit) and edit photos ('แก้ไข') | `/manual/*` (from 'นอกเรท' / 'คัดลอก' / 'แก้ไข') | ported, user-tested on UAT (uploads, compression, see-image) |
 
 Live UAT: https://sawad-new-ibs-uat.web.app. Prod has not been deployed yet.
 
@@ -86,11 +86,11 @@ bar** (`lib/core/session/user_session.dart`).
 
 | Param | Mobile `FFAppState` field | Used for |
 |---|---|---|
-| `token` | `accessToken` | `Authorization: Bearer` on quotation save |
+| `token` | `accessToken` | `Authorization: Bearer` on lead / quotation / manual-request APIs |
 | `empId` | `employeeID` | `owner_id` |
-| `firstName`, `lastName` | `profileFirstName/LastName` | quotation owner name |
+| `firstName`, `lastName` | `profileFirstName/LastName` | owner name (quotation, manual request) |
 | `phone` | `ProfilePhoneNumber` | `owner_phone` |
-| `branchCode`, `branchName` | `profileBranch`, `profileUnitCodeName` | quotation branch |
+| `branchCode`, `branchName` | `branchCode`, `profileUnitCodeName` (assumed) | request branch; a code longer than 2 chars shows the branch picker (FF rule) |
 
 API base URLs are **not** accepted from the URL — they're compiled in per env
 (`lib/core/config/app_environment.dart`).
@@ -145,6 +145,17 @@ Release builds use `--csp --no-web-resources-cdn --no-source-maps`.
 **"(UAT ver N)"** tag in every AppBar (hidden on prod) and log it at boot, so
 testers can tell which build the WebView is running.
 
+Hosting serves every page path (`/`, `/manual/basic`, …) with `no-cache`, so a
+new deploy's headers (CSP) apply on the next load.
+
+Firestore config for UAT is copied from prod with
+`node tools/firestore-copy/copy.mjs prod uat <collections…>` — only the
+collections the web reads (`Vehicle_Type_Dropdown`, `hideInAppContent`,
+`InsurerConfig2`); prod also holds user data and credentials.
+
+**Before the first prod deploy:** enable Authentication → Sign-in method →
+Anonymous in `sawad-new-ibs` (photo uploads need it).
+
 ## UI conventions
 
 - **Loading:** a page loading its data on open shows a white body with an
@@ -163,10 +174,10 @@ testers can tell which build the WebView is running.
   Chrome's Local Network Access check can block calls from the `web.app`
   origin until the user allows it — check the host WebView on office Wi-Fi.
 - The call button (`tel:`) inside the host WebView.
-- Manual request: real photo upload (needs Anonymous sign-in), a real
-  `manual-insurance/save` / `edit` (tested with stubbed responses only), the
-  'นอกเรท' entry from the search pages (built, not click-tested), and the
-  Camera / file chooser inside the host WebView (needs file-chooser support).
+- Manual request: the result of a real `manual-insurance/save` / `edit` in the
+  back office, the 'นอกเรท' entry from the search pages (built, not
+  click-tested), and Camera / file chooser inside the host WebView (needs
+  file-chooser support in the host app).
 
 ## Security posture (pentest prep)
 
@@ -174,7 +185,7 @@ testers can tell which build the WebView is running.
   service-account keys are git-ignored.
 - Launch params validated + stripped from the URL; API hosts compiled in.
 - Hosting headers: CSP (self-hosted CanvasKit/fonts, `connect-src` limited to
-  the API + Firestore hosts), HSTS, nosniff, `Referrer-Policy: no-referrer`,
+  the API, Firestore, Firebase Auth / Storage hosts and `blob:`), HSTS, nosniff, `Referrer-Policy: no-referrer`,
   `X-Frame-Options: DENY`, Permissions-Policy, COOP.
 - Release builds show a generic Thai error instead of stack traces and log no
   user data.
@@ -186,9 +197,9 @@ testers can tell which build the WebView is running.
    (`kLocalApiBasicAuth`) — needs a per-user auth scheme server-side.
 2. Master-data and package-search insurance APIs are unauthenticated, and the
    API echoes any `Origin` in `Access-Control-Allow-Origin`.
-3. `hideInAppContent` requires Firebase Auth, which the web build doesn't have
-   yet — it falls back to the current prod values until the bridge supplies an
-   ID token.
+3. Auth-only Firestore docs (`hideInAppContent`, `InsurerConfig2`) are read
+   with an anonymous Firebase identity where needed; anyone can mint one with
+   the public web API key, so those docs must never hold secrets.
 4. The GitHub repo is public — make it private before the pentest.
 5. The **mobile app** signs every employee into Firebase as
    `<empId>@srisawadinsurance.com` with one hard-coded shared password

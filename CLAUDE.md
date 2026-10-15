@@ -10,7 +10,7 @@ App text/data is Thai; code, comments and commit messages are English.
 structure, deploy, security). This file is the working guide for Claude:
 current state, rules, conventions, and what's open.
 
-## Current state (read first) — updated 2026-10-10
+## Current state (read first) — updated 2026-10-15
 
 - **Feature 1 — search insurance package (motor / EV / MC): ported, on `uat`,
   user-tested and confirmed working.**
@@ -21,19 +21,23 @@ current state, rules, conventions, and what's open.
   UAT (ver7) with a real token in headless Chrome: list, search, confirm →
   get-lead-by-id → detail, real quotation PDF in the iframe, 'ดาวน์โหลด PDF'
   new tab, 'ติดตามงาน' history sheet, main button → InsuranceInfoPage1.
-- **Feature 3 — manual request งานนอกเรท (create + edit): ported, pushed to
-  `uat`, waiting for the user to test.** Code in `lib/features/manual_request/`
-  (specs written from the FF source: create = SelectReason → NonePackageBasic
-  → BasicImage1 → BasicImage2 → NonePackageInsurer → Success/UnSuccess; edit =
-  EditPage1 → EditDetail / EditPage2 → EditPage3). Entries: 'นอกเรท' on
-  work-select + result pages, quotation list 'คัดลอก' / 'แก้ไข'. Browser-tested
-  on real UAT data with **stubbed** Firebase sign-in/upload and stubbed
-  save/edit responses (no real request was created). Blocker: Firebase
-  **Anonymous sign-in is disabled** in `sawad-new-ibs` (`ADMIN_ONLY_OPERATION`)
-  → real uploads fail until the user enables it. User scope choice: create +
-  edit; NonePackageSelectedInsurerPage (choose insurer) not in scope yet.
+- **Feature 3 — manual request งานนอกเรท (create + edit): ported, on `uat`
+  (ver16+); user tested uploads on UAT — "run smooth", photo compression and
+  the see-image icon confirmed (2026-10-12…14).** Code in
+  `lib/features/manual_request/` (ported from FF: create = SelectReason →
+  NonePackageBasic → BasicImage1 → BasicImage2 → NonePackageInsurer →
+  Success/UnSuccess; edit = EditPage1 → EditDetail / EditPage2 → EditPage3).
+  Entries: 'นอกเรท' on work-select + result pages, quotation list 'คัดลอก' /
+  'แก้ไข'. User scope choice: create + edit; NonePackageSelectedInsurerPage
+  (choose insurer, after the insurance team uploads the insurer quotation)
+  is the natural next step — not ported yet.
+  - Follow-up changes on request: per-environment Firebase (UAT build →
+    `sawad-new-ibs-uat`, only needed Firestore config copied from prod);
+    every photo → JPEG q50 within 1920×1920; "see image" icon next to every
+    uploaded photo's ✓.
+- The next feature will be named by the user — wait for it.
 - Live UAT: https://sawad-new-ibs-uat.web.app (`/motor`, `/ev`, `/mc`,
-  `/quotations`).
+  `/quotations`; manual flows are reached from those pages).
 - **Prod (`main`) has never been deployed.** Nothing goes to prod until the user
   explicitly says so for that job.
 - Commits on `uat`:
@@ -42,6 +46,10 @@ current state, rules, conventions, and what's open.
   - `1f045d2` "(UAT ver<build>)" tag in every AppBar
   - `6a4c1e0` port of the quotation list feature (+ doc commits)
   - `556c571` port of the manual request (งานนอกเรท) create + edit flows
+  - `f6f6bf0` no-cache for SPA page paths (new CSP applies right after deploy)
+  - `66a59eb` per-environment Firebase + `tools/firestore-copy`
+  - `44320e0` photo compression (JPEG q50, max 1920×1920, PNG included)
+  - `f9f96c9` see-image icon next to uploaded photos
 - JS bridge to the host app: **not started** ("do nothing yet"). Launch params
   are the interim hand-off.
 
@@ -67,7 +75,8 @@ current state, rules, conventions, and what's open.
 - FF source: `/Users/volley5544/Projects/Flutter/tanjai` (search package lives in
   `lib/search_package`; entry `search_insurance_page_widget.dart`; quotation
   list = `lib/pages/super_app/insurance_list_page`, detail =
-  `lib/pages/super_app/make_insurance_list_page`).
+  `lib/pages/super_app/make_insurance_list_page`; manual request =
+  `lib/none_package_insurance`; success pages = `lib/search_package/insurance_(un_)success_page`).
 - API response samples from the user: `etc/api_sample/` (git-ignored, may hold
   real customer data — never commit or paste it).
 - Web structure + JS bridge patterns: `/Users/volley5544/Projects/Flutter/sawadLoanUniversal`
@@ -95,9 +104,23 @@ masked unless listed in `--show`, GET only):
 node tools/firestore-inspect/read.mjs <uat|prod> <collection> [--show f1,f2] [--limit N]
 ```
 
-E2E checks were done with headless Chrome + puppeteer-core from the session
-scratchpad (not in the repo): serve `build/web` with the `firebase.json`
-headers, click by coordinates, screenshot each step. Recreate if needed.
+Copy Firestore collections prod → UAT (CLI login; refuses to write prod):
+
+```sh
+node tools/firestore-copy/copy.mjs --list <uat|prod>          # collections + counts (slow on prod)
+node tools/firestore-copy/copy.mjs prod uat <coll...> [--dry-run]
+```
+
+E2E checks were done with headless Chrome + puppeteer-core from a temp dir
+(not in the repo): serve `build/web` with the `firebase.json` CSP, intercept
+API calls when needed (stub lead APIs / Firebase / save), click by
+coordinates, screenshot each step; `page.waitForFileChooser()` feeds test
+images. Launch Chrome with `--disable-features=LocalNetworkAccessChecks`
+(API hosts are private IPs on the office network). Recreate if needed.
+
+Git push uses the macOS keychain (HTTPS). If it fails with "could not read
+Username", the user re-authenticates by pushing once from Terminal with a
+GitHub PAT — never paste tokens into the chat.
 
 ## Environments & data
 
@@ -130,8 +153,9 @@ headers, click by coordinates, screenshot each step. Recreate if needed.
 ## Architecture & conventions
 
 - `lib/core/` — shared: `config/`, `session/` (UserSession + URL cleaner),
-  `network/ApiClient` (JSON POST, timeout, no logging, `-1` on failure),
-  `firebase/FirestoreRest`, `theme/` (`AppColors` = FF tokens + Tanjai oranges/navy,
+  `network/ApiClient` (JSON + multipart POST, timeout, no logging, `-1` on
+  failure), `firebase/` (`FirestoreRest`, `FirebaseAuthRest` anonymous,
+  `FirebaseStorageRest`), `theme/` (`AppColors` = FF tokens + Tanjai oranges/navy,
   `AppText.style`), `utils/ff_functions.dart` (null-safe ports of FF custom
   functions, **same names** as FF), `widgets/`.
 - `lib/features/<feature>/` — `models/`, `data/` (`*Api` singleton returning
@@ -209,8 +233,10 @@ headers, click by coordinates, screenshot each step. Recreate if needed.
 1. **Not tested end to end:** quotation save (needs a real token, creates real
    data), the filter and compare pages (not click-tested), the quotation PDF
    iframe inside the Android WebView (may need the bridge to open the URL).
-2. **'ชำระเต็มจำนวนเท่านั้น' label** is hidden on web: `InsurerConfig2` needs
-   Firebase auth → needs a product decision or an ID token from the bridge.
+2. **'ชำระเต็มจำนวนเท่านั้น' label** (search package detail page) is still
+   hidden: `InsurerConfig2` needs Firebase auth. The anonymous token
+   (`FirebaseAuthRest`) now makes it readable — wire it in if the user wants
+   the label (the manual insurer page already does).
 3. **Security findings outside the web app:** the shared Basic credential for
    the local API (`getdate-time`, `check-in/location`) ships in the bundle
    (`kLocalApiBasicAuth`); the mobile app signs employees into Firebase with a
@@ -235,11 +261,13 @@ headers, click by coordinates, screenshot each step. Recreate if needed.
     unless the user allows it; headless tests need
     `--disable-features=LocalNetworkAccessChecks`. Check how the host
     Android/iOS WebView behaves on office Wi-Fi vs. mobile data.
-11. **Manual request:** Anonymous sign-in is on in UAT and uploads to
-    `sawad-new-ibs-uat.appspot.com` were verified (2026-10-12); retest real
-    uploads in the app + one real submit (user allowed UAT submits). Before
-    prod: enable Anonymous in `sawad-new-ibs`. 'นอกเรท' from the
-    search pages and the host WebView camera / file chooser are untested.
+11. **Manual request:** uploads work on UAT (user, browser). Still to
+    confirm: a real `manual-insurance/save` / `edit` result in the back office
+    (user allowed UAT submits), 'นอกเรท' from the search pages, and the camera
+    / file chooser inside the host Android / iOS WebView (needs file-chooser
+    support in the host app). Before prod: enable Anonymous sign-in in
+    `sawad-new-ibs`. Anonymous users are created per session (token in memory
+    only; auto clean-up after 30 days is on in UAT).
     Branch mapping assumption: launch param `branchCode` = FF
     `FFAppState().branchCode` (picker shown when longer than 2 chars),
     `branchName` = `profileUnitCodeName`, owner name = first + last name.
