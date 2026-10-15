@@ -20,6 +20,7 @@ results and look.
 | Search insurance package — motorcycle | `/mc` | ported, user-tested on UAT |
 | Quotation list (InsuranceListPage) → detail (MakeInsuranceListPage) → quotation PDF (QuotationCopy) | `/quotations` | ported, user-tested on UAT |
 | Search insurance package — fire (ประกันอัคคีภัย): search → insurer list → detail → customer → quotation PDF | `/fire` | ported, E2E-tested in headless Chrome (save stubbed); awaiting user test |
+| Fire quotation list (fireInsuranceListPage) → detail (MakeFireInsuranceListPage) → quotation PDF (FireQuotationCopy) | `/fire/quotations` | ported, E2E-tested with stubbed leads (needs a token); awaiting user test |
 | Manual request งานนอกเรท — create (SelectReason → form → photos → documents → insurers → submit) and edit photos ('แก้ไข') | `/manual/*` (from 'นอกเรท' / 'คัดลอก' / 'แก้ไข') | ported, user-tested on UAT (uploads, compression, see-image) |
 
 Live UAT: https://sawad-new-ibs-uat.web.app. Prod has not been deployed yet.
@@ -58,6 +59,18 @@ NonePackageSelectedInsurerPage, LicenseSelectComponent) open a placeholder
   quotation**) → `/fire/quotation` (PDF pager, no back arrow as in FF) or,
   for 'ตกลงทำประกัน', InsuranceInfoPage1 (not ported).
 - Flow data in `FireSearchState`; reset when `/fire` opens.
+
+### Fire quotation list (`/fire/quotations`)
+
+- List: `POST /api/house/leads/get` (`owner_id`, Bearer token). Search by
+  first name, call button, 'ทำประกัน' → confirm → `/fire/quotations/detail`
+  with that lead.
+- Detail: 'ดูใบเสนอราคา' (`leads_detail_house.pdf_quotation` →
+  `/fire/quotations/pdf`, the same page as QuotationCopy), 'ดูกรมธรรม์' for
+  approved leads (`/api/quotations/get-file-vmi`, new tab), main button →
+  InsuranceInfoPage1 / 42 / 5 (not ported).
+- All calls are reads. Not ported: the home-page fire dashboard preview and
+  FireLeadFollowUpPage.
 
 ### Manual request — งานนอกเรท (`/manual/*`)
 
@@ -130,7 +143,8 @@ lib/
   features/
     home/                  test menu + not-ported placeholder
     fire_insurance/        fire search package (FireSearchState, FireInsuranceApi,
-                           search/ results/ detail/ customer/ quotation/)
+                           search/ results/ detail/ customer/ quotation/) and
+                           fire quotation list (quotation_list/, FireQuotationListState)
     manual_request/        งานนอกเรท create + edit flows (NonePackageState, ManualRequestApi,
                            create/ edit/ shared/ — photo upload, diagram, form widgets)
     quotation_list/        quotation list → MakeInsuranceListPage → QuotationCopy

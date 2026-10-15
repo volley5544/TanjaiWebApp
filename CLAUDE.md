@@ -10,7 +10,7 @@ App text/data is Thai; code, comments and commit messages are English.
 structure, deploy, security). This file is the working guide for Claude:
 current state, rules, conventions, and what's open.
 
-## Current state (read first) — updated 2026-10-15 (fire port)
+## Current state (read first) — updated 2026-10-15 (fire port + fire list)
 
 - **Feature 1 — search insurance package (motor / EV / MC): ported, on `uat`,
   user-tested and confirmed working.**
@@ -46,6 +46,14 @@ current state, rules, conventions, and what's open.
   InsuranceInfoPage1 (`/not-ported`); the fire quotation list / lead
   follow-up / policy pages (`fire_inpackage_folder`, FireInsuranceListPage,
   MakeFireInsuranceListPage, FireQuotationCopy, …).
+- **Feature 5 — fire quotation list (`/fire/quotations`): ported, on `uat`,
+  E2E-tested with a stubbed `house/leads/get` (needs a real token) — waiting
+  for the user's test.** FF fireInsuranceListPage → 'ทำประกัน' →
+  MakeFireInsuranceListPage (`/fire/quotations/detail`) → FireQuotationCopy
+  (`/fire/quotations/pdf` = `QuotationCopyPage(fire: true)`). Code in
+  `lib/features/fire_insurance/quotation_list/`. User chose a separate page
+  (as the mobile app), not inside `/quotations`. Not ported: the home-page
+  fire dashboard preview / FireLeadFollowUpPage entry points.
 - The next feature will be named by the user — wait for it.
 - Live UAT: https://sawad-new-ibs-uat.web.app (`/motor`, `/ev`, `/mc`,
   `/fire`, `/quotations`; manual flows are reached from those pages).
@@ -62,6 +70,7 @@ current state, rules, conventions, and what's open.
   - `44320e0` photo compression (JPEG q50, max 1920×1920, PNG included)
   - `f9f96c9` see-image icon next to uploaded photos
   - `277fb55` port of the fire insurance search package (search → quotation)
+  - `a12051e` port of the fire quotation list (list → detail → PDF)
 - JS bridge to the host app: **not started** ("do nothing yet"). Launch params
   are the interim hand-off.
 
@@ -222,6 +231,13 @@ GitHub PAT — never paste tokens into the chat.
   'sum_insure_buildin' shown for empty detail amounts, 'อากร' /
   'ภาษีมูลค่าเพิ่ม' show vat / stamp swapped, `sum_insure_total` printed like
   the Dart VM (`'1400000.0'`).
+- Fire quotation list: `FireQuotationListState.instance` (selected lead +
+  copy URLs). `FireLead` reads each lead's own first `leads_detail_house` /
+  `app_detail_house` entry (list or object; FF used parallel flattened
+  lists); missing values print `'null'` like FF `toString()`, list defaults
+  'sabaide' / '40000' kept. The detail page only implements FF's
+  `checkVMI == '0'`, `checkPayment == '0'` variant (the only one the list
+  opens). Routes `/fire/quotations…` are flat, before `/:product/…`.
 - `VerticalExpandingDots` (`core/widgets/`) is shared by the motor and fire
   quotation pagers.
 - Search package: one `SearchPackageState.of(ProductType)` per product;
@@ -303,7 +319,9 @@ GitHub PAT — never paste tokens into the chat.
     Branch mapping assumption: launch param `branchCode` = FF
     `FFAppState().branchCode` (picker shown when longer than 2 chars),
     `branchName` = `profileUnitCodeName`, owner name = first + last name.
-12. **Fire insurance:** waiting for the user's UAT test. Owner name sent as
+12. **Fire insurance (search + list):** waiting for the user's UAT test; the
+    fire list was only tested with stubbed lead data (shape assumed from the
+    FF JSON paths). Owner name sent as
     `firstName lastName` (FF `profileFullName`), branch = launch `branchCode`
     (FF `profileBranch`). The FF search page nested `Expanded` in unbounded
     columns; the port lays each field out as label-above-box — compare with
