@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_scaffold.dart';
+import '../../../core/widgets/vertical_expanding_dots.dart';
 import '../../../router/app_router.dart';
 import '../product_type.dart';
 import '../state/search_package_state.dart';
@@ -114,7 +115,7 @@ class _QuotationPageState extends State<QuotationPage> {
                       alignment: const AlignmentDirectional(0.9, -0.95),
                       child: Padding(
                         padding: const EdgeInsets.only(left: 16, bottom: 16),
-                        child: _VerticalExpandingDots(
+                        child: VerticalExpandingDots(
                           controller: _pageController,
                           count: pdfs.length,
                         ),
@@ -127,59 +128,6 @@ class _QuotationPageState extends State<QuotationPage> {
           ),
         );
       },
-    );
-  }
-}
-
-/// SmoothPageIndicator(axisDirection vertical, ExpandingDotsEffect(
-/// expansionFactor 2, spacing 8, radius 16, dotWidth 16, dotHeight 8,
-/// dotColor lineColor, activeDotColor tertiary)). Vertical rotates the dots,
-/// so each is 8 wide and 16 (active up to 32) tall. Tap → animate to page.
-class _VerticalExpandingDots extends StatelessWidget {
-  const _VerticalExpandingDots({required this.controller, required this.count});
-
-  final PageController controller;
-  final int count;
-
-  static const _dotLength = 16.0;
-  static const _dotThickness = 8.0;
-  static const _expansion = 2.0;
-  static const _spacing = 8.0;
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, _) {
-        final page = controller.hasClients && controller.position.haveDimensions
-            ? (controller.page ?? 0)
-            : controller.initialPage.toDouble();
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (var i = 0; i < count; i++)
-              _dot(i, (1 - (page - i).abs()).clamp(0.0, 1.0)),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _dot(int i, double t) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: _spacing / 2),
-      child: GestureDetector(
-        onTap: () => controller.animateToPage(i,
-            duration: const Duration(milliseconds: 500), curve: Curves.ease),
-        child: Container(
-          width: _dotThickness,
-          height: _dotLength + _dotLength * (_expansion - 1) * t,
-          decoration: BoxDecoration(
-            color: Color.lerp(AppColors.lineColor, AppColors.tertiary, t),
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-      ),
     );
   }
 }

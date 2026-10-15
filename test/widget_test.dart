@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tanjai_web_app/core/session/user_session.dart';
 import 'package:tanjai_web_app/core/utils/ff_functions.dart';
 import 'package:tanjai_web_app/core/utils/tel_link.dart';
+import 'package:tanjai_web_app/features/fire_insurance/models/fire_package.dart';
+import 'package:tanjai_web_app/features/fire_insurance/models/house_type.dart';
 import 'package:tanjai_web_app/features/manual_request/models/lead_detail.dart';
 import 'package:tanjai_web_app/features/manual_request/state/none_package_state.dart';
 import 'package:tanjai_web_app/features/quotation_list/models/lead_detail_item.dart';
@@ -206,5 +208,67 @@ void main() {
       expect(checkPhoneNumberInput('812345678'), isFalse);
     });
   });
-}
 
+  group('fire insurance', () {
+    test('number helpers match the FF custom functions', () {
+      expect(showNumberWithCommaWithoutDot2('2500000'), '2,500,000');
+      expect(showNumberWithCommaWithoutDot2('1234.56'), '1,234');
+      expect(showNumberWithCommaWithoutDot2(''), '');
+      expect(returnNumberWithComma2Decimal('1500000'), '1,500,000.00');
+      expect(returnNumberWithComma2Decimal('5000.005'), '5,000.01');
+      expect(returnNumberWithComma2Decimal('ไม่คุ้มครอง'), 'ไม่คุ้มครอง');
+      expect(returnNumberWithComma2Decimal(''), '');
+      expect(checkIsDouble('5000'), isTrue);
+      expect(checkIsDouble('ไม่คุ้มครอง'), isFalse);
+      expect(removeCommaFromNumber('1,200,000'), '1200000');
+      expect(removeDatAndMakeUpperCase('081-234-5678'), '0812345678');
+    });
+
+    test('FirePackage keeps FF toMap keys and drops nulls', () {
+      final p = FirePackage.fromJson({
+        'id': 88,
+        'company_id': '15',
+        'package_name': 'Sabai Plus 2',
+        'sum_insured': '1500000.00000',
+        'gross_total': '2885.33000',
+        'productId': '',
+        'gross_total_net': '2885.33', // not in the FF struct
+      });
+      final m = p.toMap();
+      expect(m['id'], 88);
+      expect(m['package_name'], 'Sabai Plus 2');
+      expect(m['productId'], '');
+      expect(m.containsKey('vat'), isFalse);
+      expect(m.containsKey('gross_total_net'), isFalse);
+      expect(m.keys.first, 'id');
+    });
+
+    test('HouseEstimate and save result parse the API bodies', () {
+      final e = HouseEstimate.fromJson({'house_type_group': '1', 'estimated_price': 2500000, 'usable_area': 200});
+      expect(e.estimatedPrice, 2500000);
+      expect(e.housePrice, 0);
+
+      final saved = FireQuotationSaveResult.fromJson({
+        'code': 200,
+        'results': {
+          'data': {
+            'quotation': {'quotation_id': 'Q1'},
+            'detail_house': [
+              {'lead_house_dtl_id': '12', 'url': 'https://example.com/a.pdf'},
+              {'lead_house_dtl_id': 13, 'url': 'https://example.com/b.pdf'},
+            ],
+          },
+        },
+      });
+      expect(saved.quotationId, 'Q1');
+      expect(saved.leadHouseDtlId, 12);
+      expect(saved.pdfUrls, ['https://example.com/a.pdf', 'https://example.com/b.pdf']);
+      expect(FireQuotationSaveResult.fromJson({}).quotationId, 'null');
+    });
+
+    test('house types are the 8 FF rows', () {
+      expect(HouseType.all.map((t) => t.code), ['01', '02', '03', '04', '05', '06', '07', '08']);
+      expect(HouseType.all.first.name, 'บ้านเดี่ยว');
+    });
+  });
+}

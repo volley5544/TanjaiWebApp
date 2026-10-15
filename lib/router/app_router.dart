@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/session/user_session.dart';
+import '../features/fire_insurance/customer/fire_add_customer_page.dart';
+import '../features/fire_insurance/detail/fire_package_detail_page.dart';
+import '../features/fire_insurance/quotation/fire_quotation_page.dart';
+import '../features/fire_insurance/results/fire_insurer_list_page.dart';
+import '../features/fire_insurance/search/fire_search_page.dart';
 import '../features/home/home_menu_page.dart';
 import '../features/home/not_ported_page.dart';
 import '../features/manual_request/create/basic_page.dart';
@@ -63,6 +68,16 @@ abstract final class AppRoutes {
   static const manualEditPhotos = '/manual/edit/photos';
   static const manualEditDocuments = '/manual/edit/documents';
 
+  /// Fire insurance search package (FF SearchPackageFireInsurancePage →
+  /// fireInsurerListPage → detailsFireInsurancePage → AddFireCustomerName →
+  /// FireQuotationPage). Flow data in `FireSearchState`.
+  static const fireSearch = '/fire';
+  static const fireInsurers = '/fire/insurers';
+  static const fireDetail = '/fire/detail';
+  static String fireCustomer({required bool doInsurance}) =>
+      '/fire/customer?btn=${doInsurance ? 'doInsurance' : 'quotation'}';
+  static const fireQuotation = '/fire/quotation';
+
   /// Hand-off to a mobile-app page that isn't ported yet.
   static String notPorted(String pageName) => '/not-ported?page=${Uri.encodeQueryComponent(pageName)}';
 }
@@ -84,7 +99,18 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/ev', builder: (context, state) => const EvSearchPage()),
     GoRoute(path: '/mc', builder: (context, state) => const McSearchPage()),
     // Before the `/:product/…` routes: `/quotations/detail` would match
-    // `/:product/detail` otherwise.
+    // `/:product/detail` otherwise (same for `/fire/…`). The fire routes are
+    // flat (not nested) so `go(fireQuotation)` doesn't rebuild the search
+    // page, whose open resets the flow state.
+    GoRoute(path: AppRoutes.fireSearch, builder: (context, state) => const FireSearchPage()),
+    GoRoute(path: AppRoutes.fireInsurers, builder: (context, state) => const FireInsurerListPage()),
+    GoRoute(path: AppRoutes.fireDetail, builder: (context, state) => const FirePackageDetailPage()),
+    GoRoute(
+      path: '/fire/customer',
+      builder: (context, state) =>
+          FireAddCustomerPage(doInsurance: state.uri.queryParameters['btn'] == 'doInsurance'),
+    ),
+    GoRoute(path: AppRoutes.fireQuotation, builder: (context, state) => const FireQuotationPage()),
     GoRoute(
       path: AppRoutes.quotationList,
       builder: (context, state) => const QuotationListPage(),

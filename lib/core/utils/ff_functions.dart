@@ -247,3 +247,29 @@ bool checkPhoneNumberInput(String phone) => RegExp(r'^0\d{9}$').hasMatch(phone);
 /// Keeps digits and '.' only.
 String removeLetterShowonlyNumber(String text) => text.replaceAll(RegExp('[^0-9.]'), '');
 
+
+/// `'1234567.89'` → `'1,234,567'`: integer part with commas, decimals dropped;
+/// null / empty → `''`.
+String showNumberWithCommaWithoutDot2(String? number) {
+  if (number == null || number.isEmpty) return '';
+  return number.split('.')[0].replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+}
+
+/// Removes ',' only.
+String removeCommaFromNumber(String input) => input.replaceAll(',', '');
+
+/// `'1500000'` → `'1,500,000.00'` (rounded to 2 decimals); non-numeric input
+/// is returned unchanged.
+String returnNumberWithComma2Decimal(String? number) {
+  final n = number ?? '';
+  final parsed = double.tryParse(n);
+  if (parsed == null) return n;
+  return parsed
+      .toStringAsFixed(2)
+      .replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+}
+
+bool checkIsDouble(String? input) => double.tryParse(input ?? '') != null;
+
+/// Keeps letters, digits and '.', upper-cased (e.g. masked phone → digits).
+String removeDatAndMakeUpperCase(String input) => input.replaceAll(RegExp('[^A-Za-z0-9.]'), '').toUpperCase();

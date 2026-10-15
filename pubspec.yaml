@@ -67,6 +67,7 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/images/fire/
     - assets/lottie/
 
   # Bundled (not fetched from Google Fonts at runtime) so the app works under a
