@@ -5,6 +5,8 @@ import '../core/session/user_session.dart';
 import '../features/fire_insurance/customer/fire_add_customer_page.dart';
 import '../features/fire_insurance/detail/fire_package_detail_page.dart';
 import '../features/fire_insurance/quotation/fire_quotation_page.dart';
+import '../features/fire_insurance/quotation_list/fire_quotation_list_page.dart';
+import '../features/fire_insurance/quotation_list/make_fire_insurance_list_page.dart';
 import '../features/fire_insurance/results/fire_insurer_list_page.dart';
 import '../features/fire_insurance/search/fire_search_page.dart';
 import '../features/home/home_menu_page.dart';
@@ -78,6 +80,13 @@ abstract final class AppRoutes {
       '/fire/customer?btn=${doInsurance ? 'doInsurance' : 'quotation'}';
   static const fireQuotation = '/fire/quotation';
 
+  /// Fire quotation list (FF fireInsuranceListPage →
+  /// MakeFireInsuranceListPage → FireQuotationCopy). Flow data in
+  /// `FireQuotationListState`.
+  static const fireQuotationList = '/fire/quotations';
+  static const fireQuotationDetail = '/fire/quotations/detail';
+  static const fireQuotationCopy = '/fire/quotations/pdf';
+
   /// Hand-off to a mobile-app page that isn't ported yet.
   static String notPorted(String pageName) => '/not-ported?page=${Uri.encodeQueryComponent(pageName)}';
 }
@@ -111,6 +120,9 @@ final GoRouter appRouter = GoRouter(
           FireAddCustomerPage(doInsurance: state.uri.queryParameters['btn'] == 'doInsurance'),
     ),
     GoRoute(path: AppRoutes.fireQuotation, builder: (context, state) => const FireQuotationPage()),
+    GoRoute(path: AppRoutes.fireQuotationList, builder: (context, state) => const FireQuotationListPage()),
+    GoRoute(path: AppRoutes.fireQuotationDetail, builder: (context, state) => const MakeFireInsuranceListPage()),
+    GoRoute(path: AppRoutes.fireQuotationCopy, builder: (context, state) => const QuotationCopyPage(fire: true)),
     GoRoute(
       path: AppRoutes.quotationList,
       builder: (context, state) => const QuotationListPage(),

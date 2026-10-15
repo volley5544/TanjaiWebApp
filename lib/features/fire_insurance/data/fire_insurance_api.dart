@@ -7,6 +7,7 @@ import '../../../core/network/api_client.dart';
 import '../../../core/session/user_session.dart';
 import '../../search_package/data/api_result.dart';
 import '../../search_package/models/json_read.dart';
+import '../models/fire_lead.dart';
 import '../models/fire_package.dart';
 
 /// FF `HouseInsuranceGroup` calls used by the fire search-package flow, on the
@@ -109,6 +110,18 @@ class FireInsuranceApi {
       headers: {'Authorization': 'Bearer $token'},
     );
     return _result(res, FireQuotationSaveResult.fromJson);
+  }
+
+  /// FireGetLeadsApiCall — the employee's fire quotation leads. Body code
+  /// 200 = list, 404 = none.
+  Future<ApiResult<List<FireLead>>> getLeads() {
+    final session = UserSession.instance;
+    return _post(
+      '$_base/api/house/leads/get',
+      {'owner_id': session.employeeId},
+      FireLead.listFromJson,
+      headers: {'Authorization': 'Bearer ${session.accessToken}'},
+    );
   }
 
   Future<ApiResult<T>> _post<T>(

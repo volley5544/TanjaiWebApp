@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tanjai_web_app/core/session/user_session.dart';
 import 'package:tanjai_web_app/core/utils/ff_functions.dart';
 import 'package:tanjai_web_app/core/utils/tel_link.dart';
+import 'package:tanjai_web_app/features/fire_insurance/models/fire_lead.dart';
 import 'package:tanjai_web_app/features/fire_insurance/models/fire_package.dart';
 import 'package:tanjai_web_app/features/fire_insurance/models/house_type.dart';
 import 'package:tanjai_web_app/features/manual_request/models/lead_detail.dart';
@@ -264,6 +265,40 @@ void main() {
       expect(saved.leadHouseDtlId, 12);
       expect(saved.pdfUrls, ['https://example.com/a.pdf', 'https://example.com/b.pdf']);
       expect(FireQuotationSaveResult.fromJson({}).quotationId, 'null');
+    });
+
+    test('FireLead reads its own first detail (list or object)', () {
+      final leads = FireLead.listFromJson({
+        'code': 200,
+        'results': {
+          'data': [
+            {
+              'lead_id': 1,
+              'first_name': 'A',
+              'leads_detail_house': [
+                {'package_name': 'Sabai Plus 2', 'pdf_quotation': 'https://x/a.pdf'},
+              ],
+            },
+            {'lead_id': 2, 'first_name': 'B', 'leads_detail_house': []},
+            {
+              'lead_id': 3,
+              'leads_detail_house': {'package_name': 'Obj'},
+              'app_detail_house': [
+                {'insurer_name': 'App insurer'},
+              ],
+            },
+          ],
+        },
+      });
+      expect(leads.length, 3);
+      expect(leads[0].detail.packageName, 'Sabai Plus 2');
+      expect(leads[0].detail.pdfQuotation, 'https://x/a.pdf');
+      expect(leads[1].detail.isEmpty, isTrue);
+      expect(leads[1].detail.raw('package_name'), isNull);
+      expect(leads[1].detail.pdfQuotation, 'null');
+      expect(leads[2].detail.packageName, 'Obj');
+      expect(leads[2].appDetail.insurerName, 'App insurer');
+      expect(leads[2].text('last_name'), 'null');
     });
 
     test('house types are the 8 FF rows', () {

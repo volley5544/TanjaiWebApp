@@ -6,6 +6,7 @@ import '../../../core/utils/ff_functions.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../router/app_router.dart';
+import '../../fire_insurance/state/fire_quotation_list_state.dart';
 import '../../search_package/quotation/pdf_frame.dart';
 import '../state/quotation_list_state.dart';
 
@@ -20,23 +21,33 @@ const _black600 = Color(0xFF090F13);
 /// FF's PageView only ever held the first URL and swapped what that page
 /// showed by `indexPdfQuotation`; here the index drives the view directly
 /// (same result). Web: the PDF is an `<iframe>`, https only.
+///
+/// [fire] = FF `FireQuotationCopy` (same page; URLs from
+/// `FireQuotationListState`, back to the fire list).
 class QuotationCopyPage extends StatefulWidget {
-  const QuotationCopyPage({super.key});
+  const QuotationCopyPage({super.key, this.fire = false});
+
+  final bool fire;
 
   @override
   State<QuotationCopyPage> createState() => _QuotationCopyPageState();
 }
 
 class _QuotationCopyPageState extends State<QuotationCopyPage> {
-  final _state = QuotationListState.instance;
   int _index = 0;
+
+  List<String>? get _urls => widget.fire
+      ? FireQuotationListState.instance.quotationCopyUrls
+      : QuotationListState.instance.quotationCopyUrls;
+
+  String get _listRoute => widget.fire ? AppRoutes.fireQuotationList : AppRoutes.quotationList;
 
   @override
   void initState() {
     super.initState();
-    if (_state.quotationCopyUrls == null) {
+    if (_urls == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) context.go(AppRoutes.quotationList);
+        if (mounted) context.go(_listRoute);
       });
     }
   }
@@ -45,13 +56,13 @@ class _QuotationCopyPageState extends State<QuotationCopyPage> {
     if (context.canPop()) {
       context.pop();
     } else {
-      context.go(AppRoutes.quotationList);
+      context.go(_listRoute);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final urls = _state.quotationCopyUrls ?? const <String>[];
+    final urls = _urls ?? const <String>[];
     final current = _index < urls.length ? urls[_index] : '';
     final size = MediaQuery.sizeOf(context);
     return Scaffold(

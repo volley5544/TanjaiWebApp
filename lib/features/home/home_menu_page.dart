@@ -7,7 +7,7 @@ import '../../router/app_router.dart';
 import '../search_package/product_type.dart';
 
 /// Entry menu for opening the web app directly (browser testing). Inside the
-/// Tanjai mobile app the host opens `/motor`, `/ev`, `/mc`, `/fire` or `/quotations`
+/// Tanjai mobile app the host opens `/motor`, `/ev`, `/mc`, `/fire`, `/quotations` or `/fire/quotations`
 /// straight away — these tiles copy that app's home-menu tiles
 /// (super_app_page).
 class HomeMenuPage extends StatelessWidget {
@@ -64,6 +64,7 @@ class HomeMenuPage extends StatelessWidget {
             tile(AppRoutes.search(ProductType.ev), Icons.electric_car, 'ค้นหาประกัน\nรถ EV'),
             tile(AppRoutes.search(ProductType.mc), Icons.motorcycle, 'ค้นหาประกันมอเตอร์ไซค์'),
             tile(AppRoutes.fireSearch, Icons.cottage, 'ประกันอัคคีภัย'),
+            tile(AppRoutes.fireQuotationList, Icons.list_alt, 'รายการ\nอัคคีภัย'),
             tile(AppRoutes.quotationList, Icons.list_alt, 'รายการ\nใบเสนอราคา'),
           ],
         ),
