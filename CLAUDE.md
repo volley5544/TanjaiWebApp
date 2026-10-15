@@ -47,8 +47,7 @@ current state, rules, conventions, and what's open.
   follow-up / policy pages (`fire_inpackage_folder`, FireInsuranceListPage,
   MakeFireInsuranceListPage, FireQuotationCopy, …).
 - **Feature 5 — fire quotation list (`/fire/quotations`): ported, on `uat`,
-  E2E-tested with a stubbed `house/leads/get` (needs a real token) — waiting
-  for the user's test.** FF fireInsuranceListPage → 'ทำประกัน' →
+  user-tested on UAT with real data and confirmed working (2026-10-15).** FF fireInsuranceListPage → 'ทำประกัน' →
   MakeFireInsuranceListPage (`/fire/quotations/detail`) → FireQuotationCopy
   (`/fire/quotations/pdf` = `QuotationCopyPage(fire: true)`). Code in
   `lib/features/fire_insurance/quotation_list/`. User chose a separate page
@@ -319,9 +318,8 @@ GitHub PAT — never paste tokens into the chat.
     Branch mapping assumption: launch param `branchCode` = FF
     `FFAppState().branchCode` (picker shown when longer than 2 chars),
     `branchName` = `profileUnitCodeName`, owner name = first + last name.
-12. **Fire insurance (search + list):** waiting for the user's UAT test; the
-    fire list was only tested with stubbed lead data (shape assumed from the
-    FF JSON paths). Owner name sent as
+12. **Fire insurance:** the fire list is user-confirmed (2026-10-15); the
+    fire search package (`/fire`) still waits for the user's test. Owner name sent as
     `firstName lastName` (FF `profileFullName`), branch = launch `branchCode`
     (FF `profileBranch`). The FF search page nested `Expanded` in unbounded
     columns; the port lays each field out as label-above-box — compare with

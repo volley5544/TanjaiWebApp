@@ -20,7 +20,7 @@ results and look.
 | Search insurance package — motorcycle | `/mc` | ported, user-tested on UAT |
 | Quotation list (InsuranceListPage) → detail (MakeInsuranceListPage) → quotation PDF (QuotationCopy) | `/quotations` | ported, user-tested on UAT |
 | Search insurance package — fire (ประกันอัคคีภัย): search → insurer list → detail → customer → quotation PDF | `/fire` | ported, E2E-tested in headless Chrome (save stubbed); awaiting user test |
-| Fire quotation list (fireInsuranceListPage) → detail (MakeFireInsuranceListPage) → quotation PDF (FireQuotationCopy) | `/fire/quotations` | ported, E2E-tested with stubbed leads (needs a token); awaiting user test |
+| Fire quotation list (fireInsuranceListPage) → detail (MakeFireInsuranceListPage) → quotation PDF (FireQuotationCopy) | `/fire/quotations` | ported, user-tested on UAT |
 | Manual request งานนอกเรท — create (SelectReason → form → photos → documents → insurers → submit) and edit photos ('แก้ไข') | `/manual/*` (from 'นอกเรท' / 'คัดลอก' / 'แก้ไข') | ported, user-tested on UAT (uploads, compression, see-image) |
 
 Live UAT: https://sawad-new-ibs-uat.web.app. Prod has not been deployed yet.
