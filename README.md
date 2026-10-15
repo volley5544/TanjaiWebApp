@@ -19,6 +19,7 @@ results and look.
 | Search insurance package — EV | `/ev` | ported, user-tested on UAT |
 | Search insurance package — motorcycle | `/mc` | ported, user-tested on UAT |
 | Quotation list (InsuranceListPage) → detail (MakeInsuranceListPage) → quotation PDF (QuotationCopy) | `/quotations` | ported, user-tested on UAT |
+| Search insurance package — fire (ประกันอัคคีภัย): search → insurer list → detail → customer → quotation PDF | `/fire` | ported, E2E-tested in headless Chrome (save stubbed); awaiting user test |
 | Manual request งานนอกเรท — create (SelectReason → form → photos → documents → insurers → submit) and edit photos ('แก้ไข') | `/manual/*` (from 'นอกเรท' / 'คัดลอก' / 'แก้ไข') | ported, user-tested on UAT (uploads, compression, see-image) |
 
 Live UAT: https://sawad-new-ibs-uat.web.app. Prod has not been deployed yet.
@@ -42,6 +43,21 @@ NonePackageSelectedInsurerPage, LicenseSelectComponent) open a placeholder
 - All calls are reads; nothing is created or changed.
 - Also reached from the add-customer save flow when the video-call gate
   blocks InsuranceInfoPage1.
+
+### Fire insurance search package (`/fire`)
+
+- `/fire` (FF SearchPackageFireInsurancePage): house type (8 fixed types),
+  usable area as width × length or m², floors (1–5), building value
+  (สิ่งปลูกสร้าง) from `POST /api/house/cal-estimated` once type + area +
+  floors are set, and the contents value (ทรัพย์สินภายในสิ่งปลูกสร้าง).
+- 'ค้นหา' → `/fire/insurers`: `POST /api/insurance/house/get_package?flag_get=1`
+  (`sum_insured` = building + contents, 1 year) → package cards, order
+  toggle (reverses the list, as FF) → 'รายละเอียด' → `/fire/detail`.
+- 'ออกใบเสนอราคา' / 'ตกลงทำประกัน' → `/fire/customer` → `POST
+  /api/house/quotations/save` (multipart, Bearer token; **creates a real
+  quotation**) → `/fire/quotation` (PDF pager, no back arrow as in FF) or,
+  for 'ตกลงทำประกัน', InsuranceInfoPage1 (not ported).
+- Flow data in `FireSearchState`; reset when `/fire` opens.
 
 ### Manual request — งานนอกเรท (`/manual/*`)
 
@@ -113,6 +129,8 @@ lib/
                            EnvVersionTag, dialogs, AppButton, app bars, selector tiles
   features/
     home/                  test menu + not-ported placeholder
+    fire_insurance/        fire search package (FireSearchState, FireInsuranceApi,
+                           search/ results/ detail/ customer/ quotation/)
     manual_request/        งานนอกเรท create + edit flows (NonePackageState, ManualRequestApi,
                            create/ edit/ shared/ — photo upload, diagram, form widgets)
     quotation_list/        quotation list → MakeInsuranceListPage → QuotationCopy
@@ -166,7 +184,8 @@ Anonymous in `sawad-new-ibs` (photo uploads need it).
 
 ## Not yet verified end to end
 
-- Quotation save (needs a real token; creates real data).
+- Quotation save (needs a real token; creates real data) — motor/EV/MC and
+  fire (fire was tested with a stubbed save only).
 - Filter and compare pages (built, not click-tested).
 - Quotation PDF iframe inside the Android WebView.
 - Quotation detail: 'ดูกรมธรรม์' / 'ดู พ.ร.บ' (need an approved quotation).
@@ -195,8 +214,10 @@ Anonymous in `sawad-new-ibs` (photo uploads need it).
 1. The local API (`getdate-time`, `check-in/location`) requires a shared
    `Authorization: Basic` credential that ships in the client bundle
    (`kLocalApiBasicAuth`) — needs a per-user auth scheme server-side.
-2. Master-data and package-search insurance APIs are unauthenticated, and the
-   API echoes any `Origin` in `Access-Control-Allow-Origin`.
+2. Master-data and package-search insurance APIs are unauthenticated (also
+   the fire `house/get_package` and `house/cal-estimated`, which answers
+   without a token), and the API echoes any `Origin` in
+   `Access-Control-Allow-Origin`.
 3. Auth-only Firestore docs (`hideInAppContent`, `InsurerConfig2`) are read
    with an anonymous Firebase identity where needed; anyone can mint one with
    the public web API key, so those docs must never hold secrets.

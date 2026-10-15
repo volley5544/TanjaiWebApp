@@ -10,7 +10,7 @@ App text/data is Thai; code, comments and commit messages are English.
 structure, deploy, security). This file is the working guide for Claude:
 current state, rules, conventions, and what's open.
 
-## Current state (read first) — updated 2026-10-15
+## Current state (read first) — updated 2026-10-15 (fire port)
 
 - **Feature 1 — search insurance package (motor / EV / MC): ported, on `uat`,
   user-tested and confirmed working.**
@@ -35,9 +35,20 @@ current state, rules, conventions, and what's open.
     `sawad-new-ibs-uat`, only needed Firestore config copied from prod);
     every photo → JPEG q50 within 1920×1920; "see image" icon next to every
     uploaded photo's ✓.
+- **Feature 4 — fire insurance search package (`/fire`): ported, on `uat`,
+  E2E-tested in headless Chrome (real UAT cal-estimated / get_package; the
+  quotation save stubbed — it creates real data); waiting for the user's
+  test (2026-10-15).** User scope: "only the search package until got
+  quotation". FF SearchPackageFireInsurancePage → SearchableHouseList / floor
+  picker → fireInsurerListPage → detailsFireInsurancePage →
+  AddFireCustomerName → FireQuotationPage. Code in
+  `lib/features/fire_insurance/`. Not ported: 'ตกลงทำประกัน' continues to
+  InsuranceInfoPage1 (`/not-ported`); the fire quotation list / lead
+  follow-up / policy pages (`fire_inpackage_folder`, FireInsuranceListPage,
+  MakeFireInsuranceListPage, FireQuotationCopy, …).
 - The next feature will be named by the user — wait for it.
 - Live UAT: https://sawad-new-ibs-uat.web.app (`/motor`, `/ev`, `/mc`,
-  `/quotations`; manual flows are reached from those pages).
+  `/fire`, `/quotations`; manual flows are reached from those pages).
 - **Prod (`main`) has never been deployed.** Nothing goes to prod until the user
   explicitly says so for that job.
 - Commits on `uat`:
@@ -50,6 +61,7 @@ current state, rules, conventions, and what's open.
   - `66a59eb` per-environment Firebase + `tools/firestore-copy`
   - `44320e0` photo compression (JPEG q50, max 1920×1920, PNG included)
   - `f9f96c9` see-image icon next to uploaded photos
+  - `277fb55` port of the fire insurance search package (search → quotation)
 - JS bridge to the host app: **not started** ("do nothing yet"). Launch params
   are the interim hand-off.
 
@@ -76,7 +88,9 @@ current state, rules, conventions, and what's open.
   `lib/search_package`; entry `search_insurance_page_widget.dart`; quotation
   list = `lib/pages/super_app/insurance_list_page`, detail =
   `lib/pages/super_app/make_insurance_list_page`; manual request =
-  `lib/none_package_insurance`; success pages = `lib/search_package/insurance_(un_)success_page`).
+  `lib/none_package_insurance`; success pages = `lib/search_package/insurance_(un_)success_page`;
+  fire = `lib/fire_insurance`, entry `search_package_fire_insurance_page`,
+  APIs in `HouseInsuranceGroup` of `backend/api_requests/api_calls.dart`).
 - API response samples from the user: `etc/api_sample/` (git-ignored, may hold
   real customer data — never commit or paste it).
 - Web structure + JS bridge patterns: `/Users/volley5544/Projects/Flutter/sawadLoanUniversal`
@@ -194,6 +208,22 @@ GitHub PAT — never paste tokens into the chat.
   (`searchList1`), the detail items and the PDF URLs. Routes under
   `/quotations` are declared before `/:product/…` (else `/quotations/detail`
   matches `/:product/detail`).
+- Fire insurance: `FireSearchState.instance` (FF
+  `fireInsuranceSearchPackageData` + `calEstimatedData` + route params),
+  reset in `FireSearchPage.initState` (FF on-load reset). Routes `/fire/…` are
+  **flat** and declared before `/:product/…`; nested routes would rebuild the
+  search page on `go(fireQuotation)` and reset the state. Pickers return the
+  choice and the search page runs `cal-estimated` itself (FF ran it inside
+  each picker). FF fixes, commented: estimate host per env (FF floor picker
+  hard-coded UAT), digits-only area / amount fields (FF int.parse crashes),
+  search waits for the blur-triggered estimate, m² usable area sent without
+  commas, overlay on every estimate, quotation long-press opens the fire PDF
+  (FF opened the motor one). Kept: no back arrow on the fire quotation page,
+  'sum_insure_buildin' shown for empty detail amounts, 'อากร' /
+  'ภาษีมูลค่าเพิ่ม' show vat / stamp swapped, `sum_insure_total` printed like
+  the Dart VM (`'1400000.0'`).
+- `VerticalExpandingDots` (`core/widgets/`) is shared by the motor and fire
+  quotation pagers.
 - Search package: one `SearchPackageState.of(ProductType)` per product;
   `SearchableListPage.open(...)` returns selected indices and the caller applies
   them.
@@ -231,7 +261,7 @@ GitHub PAT — never paste tokens into the chat.
 ## Open items
 
 1. **Not tested end to end:** quotation save (needs a real token, creates real
-   data), the filter and compare pages (not click-tested), the quotation PDF
+   data — motor/EV/MC, and fire which was only tested with a stubbed save), the filter and compare pages (not click-tested), the quotation PDF
    iframe inside the Android WebView (may need the bridge to open the URL).
 2. **'ชำระเต็มจำนวนเท่านั้น' label** (search package detail page) is still
    hidden: `InsurerConfig2` needs Firebase auth. The anonymous token
@@ -241,7 +271,9 @@ GitHub PAT — never paste tokens into the chat.
    the local API (`getdate-time`, `check-in/location`) ships in the bundle
    (`kLocalApiBasicAuth`); the mobile app signs employees into Firebase with a
    hard-coded shared password (`<empId>@srisawadinsurance.com` / `check_status_firebase.dart`); insurance
-   master/search APIs are unauthenticated; the API reflects any `Origin` in CORS.
+   master/search APIs are unauthenticated (fire `house/get_package` and
+   `house/cal-estimated` too — cal-estimated answers without a token); the
+   API reflects any `Origin` in CORS.
 4. **GitHub repo is public** — recommended to make it private before the pentest.
 5. Pages reached from the flows but not ported yet open `/not-ported`
    (InsuranceInfoPage1 / 42 / 5, NonePackageSelectedInsurerPage,
@@ -271,3 +303,8 @@ GitHub PAT — never paste tokens into the chat.
     Branch mapping assumption: launch param `branchCode` = FF
     `FFAppState().branchCode` (picker shown when longer than 2 chars),
     `branchName` = `profileUnitCodeName`, owner name = first + last name.
+12. **Fire insurance:** waiting for the user's UAT test. Owner name sent as
+    `firstName lastName` (FF `profileFullName`), branch = launch `branchCode`
+    (FF `profileBranch`). The FF search page nested `Expanded` in unbounded
+    columns; the port lays each field out as label-above-box — compare with
+    the phone. Fire quotation list / follow-up / policy pages are not ported.
