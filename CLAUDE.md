@@ -88,7 +88,7 @@ current state, rules, conventions, and what's open.
   - `277fb55` port of the fire insurance search package (search → quotation)
   - `a12051e` port of the fire quotation list (list → detail → PDF)
   - `f950ff8` EV off-rate from work-select opens workType 'ev'
-  - `1077b61` request-policy foundation; next commit = the five steps
+  - `1077b61` request-policy foundation; `9511886` the five steps
 - JS bridge to the host app: **not started** ("do nothing yet"). Launch params
   are the interim hand-off.
 
