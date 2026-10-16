@@ -9,6 +9,7 @@ import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/loading_scene.dart';
 import '../../../router/app_router.dart';
 import '../../search_package/quotation/pdf_frame.dart';
+import '../../policy_request/entry.dart';
 import '../data/lead_api.dart';
 import '../list/quotation_list_page.dart';
 import '../models/lead_detail_item.dart';
@@ -151,9 +152,17 @@ class _MakeInsuranceListPageState extends State<MakeInsuranceListPage> {
           'ขอคืนเงิน',
           'โยกเงิน',
         };
-        _notPorted(toPage5.contains(status) ? 'InsuranceInfoPage5' : 'InsuranceInfoPage42');
+        // Ported for auto work (motor / EV / MC); other work types stay on
+        // the placeholder until their pages are ported.
+        if (!item.isManual) {
+          toPage5.contains(status)
+              ? openRequestStatus(context, quotationId: item.quotationId, leadDtlId: item.leadDtlId)
+              : openRequestPayment(context, quotationId: item.quotationId, leadDtlId: item.leadDtlId);
+        } else {
+          _notPorted(toPage5.contains(status) ? 'InsuranceInfoPage5' : 'InsuranceInfoPage42');
+        }
       } else if (item.quotationType == 'auto') {
-        _notPorted('InsuranceInfoPage1');
+        openRequestStep1(context, quotationId: item.quotationId, leadDtlId: item.leadDtlId);
       } else if (status == 'รอตัดสินใจ') {
         // FF also cleared insuranceInfoPage1/2/3SaveDataCheckBool here.
         _notPorted('NonePackageSelectedInsurerPage');

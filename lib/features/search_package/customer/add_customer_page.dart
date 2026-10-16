@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/firebase/firestore_rest.dart';
 import '../../../core/session/user_session.dart';
+import '../../../core/session/user_profile.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/ff_functions.dart' as ff;
 import '../../../core/utils/input_formatters.dart';
@@ -13,6 +14,7 @@ import '../../../core/widgets/app_dialogs.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/loading_scene.dart';
 import '../../../router/app_router.dart';
+import '../../policy_request/entry.dart';
 import '../data/search_package_api.dart';
 import '../models/insurance_package.dart';
 import '../models/quotation_save_request.dart';
@@ -239,16 +241,19 @@ class _AddCustomerPageState extends State<AddCustomerPage> {
     if (kDebugMode) debugPrint('[AddCustomer] quotation saved');
 
     if (widget.fromBtn == 'saveBtn') {
-      // FF: allowed = video_call shown ? profileIsHaveInsuranceCard : true.
-      // profileIsHaveInsuranceCard isn't handed to the web app yet → FF
-      // default false.
-      const haveInsuranceCard = false;
-      final allowed = videoCallShown ? haveInsuranceCard : true;
+      // FF: allowed = video_call shown ? profileIsHaveInsuranceCard : true
+      // (licence flag from the broker-licence API, `UserProfile`).
+      await UserProfile.instance.ensureLoaded();
+      if (!mounted) return;
+      final allowed = videoCallShown ? UserProfile.instance.haveInsuranceCard : true;
       if (allowed) {
         // FF pushNamed('insuranceInfoPage1', quotationId: '${result.quotationId}',
-        // leadDtailId: result.leadDtlIds.first) — both kept in
-        // state.lastSaveResult for the future port (not put in the URL).
-        context.go(AppRoutes.notPorted('InsuranceInfoPage1'));
+        // leadDtailId: result.leadDtlIds.first).
+        openRequestStep1(
+          context,
+          quotationId: '${result.quotationId}',
+          leadDtlId: result.details.isEmpty ? null : result.details.first.leadDtlId,
+        );
       } else {
         context.go(AppRoutes.quotationList);
       }

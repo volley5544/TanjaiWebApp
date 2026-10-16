@@ -10,6 +10,16 @@ import '../features/fire_insurance/quotation_list/make_fire_insurance_list_page.
 import '../features/fire_insurance/results/fire_insurer_list_page.dart';
 import '../features/fire_insurance/search/fire_search_page.dart';
 import '../features/home/home_menu_page.dart';
+import '../features/policy_request/payment/payment_page.dart';
+import '../features/policy_request/payment/qr_payment_page.dart';
+import '../features/policy_request/step1/add_address_page.dart';
+import '../features/policy_request/step1/customer_info_page.dart';
+import '../features/policy_request/step2/vehicle_info_page.dart';
+import '../features/policy_request/step3/documents_page.dart';
+import '../features/policy_request/step4/payment_documents_page.dart';
+import '../features/policy_request/step4/payment_type_page.dart';
+import '../features/policy_request/step5/cancel_policy_page.dart';
+import '../features/policy_request/step5/policy_status_page.dart';
 import '../features/home/not_ported_page.dart';
 import '../features/manual_request/create/basic_page.dart';
 import '../features/manual_request/create/insurer_page.dart';
@@ -87,6 +97,19 @@ abstract final class AppRoutes {
   static const fireQuotationDetail = '/fire/quotations/detail';
   static const fireQuotationCopy = '/fire/quotations/pdf';
 
+  /// Request-policy flow (FF in_package_insurance; motor / EV / MC auto).
+  /// Ids in `PolicyRequestState`; open with `features/policy_request/entry.dart`.
+  static const requestCustomer = '/request/customer'; // P1
+  static const requestAddress = '/request/address'; // AddAddress
+  static const requestVehicle = '/request/vehicle'; // P2
+  static const requestDocuments = '/request/documents'; // P3
+  static const requestPaymentDocuments = '/request/payment-documents'; // P4
+  static const requestPaymentType = '/request/payment-type'; // HR41
+  static const requestPayment = '/request/payment'; // P4_2
+  static const requestPaymentQr = '/request/payment/qr'; // PaywithQRcode
+  static const requestStatus = '/request/status'; // P5
+  static const requestCancel = '/request/status/cancel'; // P5 cancel
+
   /// Hand-off to a mobile-app page that isn't ported yet.
   static String notPorted(String pageName) => '/not-ported?page=${Uri.encodeQueryComponent(pageName)}';
 }
@@ -111,6 +134,18 @@ final GoRouter appRouter = GoRouter(
     // `/:product/detail` otherwise (same for `/fire/…`). The fire routes are
     // flat (not nested) so `go(fireQuotation)` doesn't rebuild the search
     // page, whose open resets the flow state.
+    // Request-policy flow — flat, before `/:product/…` (`/request/customer`
+    // would match `/:product/customer`).
+    GoRoute(path: AppRoutes.requestCustomer, builder: (context, state) => const CustomerInfoPage()),
+    GoRoute(path: AppRoutes.requestAddress, builder: (context, state) => const AddAddressPage()),
+    GoRoute(path: AppRoutes.requestVehicle, builder: (context, state) => const VehicleInfoPage()),
+    GoRoute(path: AppRoutes.requestDocuments, builder: (context, state) => const DocumentsPage()),
+    GoRoute(path: AppRoutes.requestPaymentDocuments, builder: (context, state) => const PaymentDocumentsPage()),
+    GoRoute(path: AppRoutes.requestPaymentType, builder: (context, state) => const PaymentTypePage()),
+    GoRoute(path: AppRoutes.requestPayment, builder: (context, state) => const PaymentPage()),
+    GoRoute(path: AppRoutes.requestPaymentQr, builder: (context, state) => const QrPaymentPage()),
+    GoRoute(path: AppRoutes.requestStatus, builder: (context, state) => const PolicyStatusPage()),
+    GoRoute(path: AppRoutes.requestCancel, builder: (context, state) => const CancelPolicyPage()),
     GoRoute(path: AppRoutes.fireSearch, builder: (context, state) => const FireSearchPage()),
     GoRoute(path: AppRoutes.fireInsurers, builder: (context, state) => const FireInsurerListPage()),
     GoRoute(path: AppRoutes.fireDetail, builder: (context, state) => const FirePackageDetailPage()),

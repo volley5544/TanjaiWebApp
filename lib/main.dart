@@ -6,6 +6,7 @@ import 'package:intl/date_symbol_data_local.dart';
 
 import 'app/app.dart';
 import 'core/config/app_environment.dart';
+import 'core/session/user_profile.dart';
 import 'core/session/user_session.dart';
 import 'router/url_strategy.dart';
 
@@ -22,6 +23,9 @@ Future<void> main() async {
 
   // Launch params from the host app; stripped from the address bar inside.
   UserSession.instance.loadFromLaunchUri(Uri.base);
+  // Employee profile / broker licence (FF PIN-login APIs); pages that need
+  // them await `ensureLoaded()`.
+  unawaited(UserProfile.instance.ensureLoaded());
 
   runApp(const TanjaiWebApp());
 }

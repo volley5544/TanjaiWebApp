@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/firebase/firestore_rest.dart';
+import '../../../core/session/user_profile.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/ff_functions.dart';
 import '../../../core/utils/tel_link.dart';
@@ -144,9 +145,10 @@ class _QuotationListPageState extends State<QuotationListPage> {
     }
     final data = r.data;
     // FF: video_call shown ? (profileIsHaveInsuranceCard || first
-    // video_url != '') : true. profileIsHaveInsuranceCard isn't handed to the
-    // web app yet → FF default false.
-    const haveInsuranceCard = false;
+    // video_url != '') : true. Licence flag from the broker-licence API.
+    await UserProfile.instance.ensureLoaded();
+    if (!mounted) return;
+    final haveInsuranceCard = UserProfile.instance.haveInsuranceCard;
     final firstVideoUrl = (data?.videoUrls.isNotEmpty ?? false) ? data!.videoUrls.first : null;
     final allowed = videoCallShown ? (haveInsuranceCard || firstVideoUrl != '') : true;
     if (allowed) {
