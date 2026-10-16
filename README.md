@@ -21,6 +21,7 @@ results and look.
 | Quotation list (InsuranceListPage) → detail (MakeInsuranceListPage) → quotation PDF (QuotationCopy) | `/quotations` | ported, user-tested on UAT |
 | Search insurance package — fire (ประกันอัคคีภัย): search → insurer list → detail → customer → quotation PDF | `/fire` | ported, user-tested on UAT |
 | Fire quotation list (fireInsuranceListPage) → detail (MakeFireInsuranceListPage) → quotation PDF (FireQuotationCopy) | `/fire/quotations` | ported, user-tested on UAT |
+| Request policy (ทำคำขอ / in-package, 5 steps): customer → vehicle → photos → documents + payment type → payment (full / installment, QR) → issue → status / cancel — **auto work, motor / EV / MC** | `/request/*` (from add-customer 'ทำประกัน' and the quotation list) | ported, E2E-tested in headless Chrome with all APIs stubbed; awaiting user test |
 | Manual request งานนอกเรท — create (SelectReason → form → photos → documents → insurers → submit) and edit photos ('แก้ไข') | `/manual/*` (from 'นอกเรท' / 'คัดลอก' / 'แก้ไข') | ported, user-tested on UAT (uploads, compression, see-image) |
 
 Live UAT: https://sawad-new-ibs-uat.web.app. Prod has not been deployed yet.
@@ -71,6 +72,30 @@ NonePackageSelectedInsurerPage, LicenseSelectComponent) open a placeholder
   InsuranceInfoPage1 / 42 / 5 (not ported).
 - All calls are reads. Not ported: the home-page fire dashboard preview and
   FireLeadFollowUpPage.
+
+### Request policy — 5 steps (`/request/*`, FF `in_package_insurance`)
+
+- Entry: add-customer 'ทำประกัน' (motor / EV / MC) and the quotation-list
+  main button (auto: status → step 1, payment or status page). Ids live in
+  `PolicyRequestState`, never in the URL.
+- Step 1 `/request/customer` (+ `/request/address`), step 2 `/request/vehicle`
+  (+ accessories / พ.ร.บ. / beneficiary / branch sub-pages), step 3
+  `/request/documents` (photos, consents), step 4 `/request/payment-documents`
+  → `/request/payment-type` (full / installment), payment `/request/payment`
+  (+ `/request/payment/qr`), step 5 `/request/status` (+ `/request/status/cancel`).
+- APIs: `applications/list` (detail), `applications/save` (steps 1–4, **writes
+  a draft**), `payment/calculate|save|regenerate`, `applications/edit`,
+  `insurance/post/issue_policy` (**sends the application to the insurer**),
+  `insurance/get|cancel/policy`, masters, blacklist, local `getdate-time`,
+  `user-profile` and `license-insurance-broker` (employee level / position /
+  licence, loaded once per session).
+- Firestore (UAT copied from prod, config only): `dataList`, `urlLinkStorage`,
+  `effectiveDayConfig`, `role_menu`, `InsurerConfig2`.
+- Structure: one set of step pages; every product / work-type difference is in
+  a per-step rules class (`stepN_rules.dart`: Motor / EV / MC …), so a change
+  for one product or work type touches only its class.
+- Not ported: manual / renew / CMI / fire (House) branches of these pages,
+  page 3_1, the CMI 'บันทึก พ.ร.บ.' admin button, 'การ์ดค่างวด' (http link).
 
 ### Manual request — งานนอกเรท (`/manual/*`)
 
@@ -142,6 +167,9 @@ lib/
                            EnvVersionTag, dialogs, AppButton, app bars, selector tiles
   features/
     home/                  test menu + not-ported placeholder
+    policy_request/        5-step request-policy flow (PolicyRequestApi, ApplicationDetail,
+                           RequestVariant, PolicyRequestState; step1/ … step5/, payment/,
+                           each with its data, rules and pages; shared/ step widgets)
     fire_insurance/        fire search package (FireSearchState, FireInsuranceApi,
                            search/ results/ detail/ customer/ quotation/) and
                            fire quotation list (quotation_list/, FireQuotationListState)
@@ -183,7 +211,8 @@ new deploy's headers (CSP) apply on the next load.
 Firestore config for UAT is copied from prod with
 `node tools/firestore-copy/copy.mjs prod uat <collections…>` — only the
 collections the web reads (`Vehicle_Type_Dropdown`, `hideInAppContent`,
-`InsurerConfig2`); prod also holds user data and credentials.
+`InsurerConfig2`, `dataList`, `urlLinkStorage`, `effectiveDayConfig`,
+`role_menu`); prod also holds user data and credentials.
 
 **Before the first prod deploy:** enable Authentication → Sign-in method →
 Anonymous in `sawad-new-ibs` (photo uploads need it).
@@ -200,6 +229,9 @@ Anonymous in `sawad-new-ibs` (photo uploads need it).
 
 - Quotation save for motor / EV / MC (needs a real token; creates real
   data). The fire save is user-tested.
+- Request-policy flow against the real API: only click-tested with every API
+  stubbed (no real application response was available); real saves, payment,
+  QR, issue and cancel need the user's test on UAT.
 - Filter and compare pages (built, not click-tested).
 - Quotation PDF iframe inside the Android WebView.
 - Quotation detail: 'ดูกรมธรรม์' / 'ดู พ.ร.บ' (need an approved quotation).

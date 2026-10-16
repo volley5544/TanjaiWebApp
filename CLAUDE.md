@@ -10,7 +10,7 @@ App text/data is Thai; code, comments and commit messages are English.
 structure, deploy, security). This file is the working guide for Claude:
 current state, rules, conventions, and what's open.
 
-## Current state (read first) — updated 2026-10-15 (fire port + fire list)
+## Current state (read first) — updated 2026-10-16 (request-policy flow)
 
 - **Feature 1 — search insurance package (motor / EV / MC): ported, on `uat`,
   user-tested and confirmed working.**
@@ -58,6 +58,18 @@ current state, rules, conventions, and what's open.
   `lib/features/fire_insurance/quotation_list/`. User chose a separate page
   (as the mobile app), not inside `/quotations`. Not ported: the home-page
   fire dashboard preview / FireLeadFollowUpPage entry points.
+- **Feature 6 — request policy, 5 steps (FF `in_package_insurance`), auto work,
+  motor / EV / MC: ported, on `uat`, click-tested in headless Chrome with
+  every API stubbed (2026-10-16); waiting for the user's real test.** Code in
+  `lib/features/policy_request/`. Built as: foundation by Claude (API, detail
+  model, variant, state, shared widgets, routes, entry) + one agent per step
+  from per-page specs. User decisions: one shared set of step pages, every
+  product / work-type difference in a per-step rules class; Firestore
+  `dataList`, `urlLinkStorage`, `effectiveDayConfig`, `role_menu` copied
+  prod → UAT; writes stubbed in tests (user tests real); employee profile from
+  `/api/user-profile` + `/api/insurance/license-insurance-broker` (not launch
+  params); P1 back / P5 / P4_2 exits → quotation list. Not ported: manual /
+  renew / CMI / fire branches, page 3_1, CMI 'บันทึก พ.ร.บ.', 'การ์ดค่างวด'.
 - The next feature will be named by the user — wait for it.
 - Live UAT: https://sawad-new-ibs-uat.web.app (`/motor`, `/ev`, `/mc`,
   `/fire`, `/quotations`; manual flows are reached from those pages).
@@ -75,6 +87,8 @@ current state, rules, conventions, and what's open.
   - `f9f96c9` see-image icon next to uploaded photos
   - `277fb55` port of the fire insurance search package (search → quotation)
   - `a12051e` port of the fire quotation list (list → detail → PDF)
+  - `f950ff8` EV off-rate from work-select opens workType 'ev'
+  - `1077b61` request-policy foundation; next commit = the five steps
 - JS bridge to the host app: **not started** ("do nothing yet"). Launch params
   are the interim hand-off.
 
@@ -242,6 +256,22 @@ GitHub PAT — never paste tokens into the chat.
   'sabaide' / '40000' kept. The detail page only implements FF's
   `checkVMI == '0'`, `checkPayment == '0'` variant (the only one the list
   opens). Routes `/fire/quotations…` are flat, before `/:product/…`.
+- Request policy (`features/policy_request/`): `PolicyRequestState.instance`
+  holds `quotationId` / `leadDtlId` / `variant` / `detail` / `summary` and one
+  data object per step (`step1`…`step5`, `payment`); `applyDetail` reloads all
+  of them from `applications/list` (entering payment / status directly
+  reloads too — no stale values from another flow). `PolicyRequestApi`
+  `saveApplication(step:, fields:)` sends FF's full 150-key body (`""`
+  defaults) — pass only the step's keys. **Product / work-type rules go in the
+  step's `stepN_rules.dart` (`MotorStepNRules`, `EvStepNRules`,
+  `McStepNRules`…), never as `if`s in pages** (user request). Open the flow
+  with `entry.dart` (`openRequestStep1 / openRequestPayment /
+  openRequestStatus`). Routes `/request/*` are flat and declared before
+  `/:product/…`. Specs used for the port are not in the repo (they were in
+  the session scratchpad); the FF source is the reference.
+- `UserProfile` (`core/session/`) loads employee level / position / branch and
+  the broker-licence flag once per session (also drives the video-call gate on
+  add-customer and the quotation list).
 - `VerticalExpandingDots` (`core/widgets/`) is shared by the motor and fire
   quotation pagers.
 - Search package: one `SearchPackageState.of(ProductType)` per product;
@@ -331,3 +361,12 @@ GitHub PAT — never paste tokens into the chat.
     (FF `profileBranch`). The FF search page nested `Expanded` in unbounded
     columns; the port lays each field out as label-above-box — compare with
     the phone. Fire quotation list / follow-up / policy pages are not ported.
+13. **Request policy (5 steps):** needs the user's real test on UAT (draft
+    saves, payment save / QR regenerate, issue_policy, cancel all write real
+    data). Questions from the port: MC blue book is required but FF sends
+    `image_bluebook` ''; MC ชั้น 1 shows the 9-photo map but never requires or
+    sends it; non-ชั้น-1 covers can be blocked by the old-policy check whose
+    row is hidden (all kept as FF, one flag each in the rules classes); an
+    https URL for 'การ์ดค่างวด' (FF uses http — hidden on web); QR payload kept
+    byte-identical to FF; `SearchableListPage` has no pre-selection (the
+    advance-tenor picker doesn't pre-check the current value).
