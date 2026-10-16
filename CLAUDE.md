@@ -35,7 +35,8 @@ current state, rules, conventions, and what's open.
     opens `workType: 'ev'` (FF lost `fromIcon`, so EV ran as 'manual' and
     asked for car photos). With 'ev' the photos step is skipped for every
     cover type, the ID card photo is required and the save sends
-    `ev_flag: 'Y'` — the FF rules for EV.
+    `ev_flag: 'Y'` — the FF rules for EV. User-tested on UAT (manual and EV
+    manual both correct, 2026-10-16).
   - Follow-up changes on request: per-environment Firebase (UAT build →
     `sawad-new-ibs-uat`, only needed Firestore config copied from prod);
     every photo → JPEG q50 within 1920×1920; "see image" icon next to every
