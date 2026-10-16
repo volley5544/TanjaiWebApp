@@ -42,9 +42,8 @@ current state, rules, conventions, and what's open.
     every photo → JPEG q50 within 1920×1920; "see image" icon next to every
     uploaded photo's ✓.
 - **Feature 4 — fire insurance search package (`/fire`): ported, on `uat`,
-  E2E-tested in headless Chrome (real UAT cal-estimated / get_package; the
-  quotation save stubbed — it creates real data); waiting for the user's
-  test (2026-10-15).** User scope: "only the search package until got
+  user-tested on UAT (search → quotation, real save) and confirmed working
+  (2026-10-16).** User scope: "only the search package until got
   quotation". FF SearchPackageFireInsurancePage → SearchableHouseList / floor
   picker → fireInsurerListPage → detailsFireInsurancePage →
   AddFireCustomerName → FireQuotationPage. Code in
@@ -281,8 +280,8 @@ GitHub PAT — never paste tokens into the chat.
 
 ## Open items
 
-1. **Not tested end to end:** quotation save (needs a real token, creates real
-   data — motor/EV/MC, and fire which was only tested with a stubbed save), the filter and compare pages (not click-tested), the quotation PDF
+1. **Not tested end to end:** motor/EV/MC quotation save (needs a real token,
+   creates real data; the fire save is user-tested), the filter and compare pages (not click-tested), the quotation PDF
    iframe inside the Android WebView (may need the bridge to open the URL).
 2. **'ชำระเต็มจำนวนเท่านั้น' label** (search package detail page) is still
    hidden: `InsurerConfig2` needs Firebase auth. The anonymous token
@@ -324,8 +323,10 @@ GitHub PAT — never paste tokens into the chat.
     Branch mapping assumption: launch param `branchCode` = FF
     `FFAppState().branchCode` (picker shown when longer than 2 chars),
     `branchName` = `profileUnitCodeName`, owner name = first + last name.
-12. **Fire insurance:** the fire list is user-confirmed (2026-10-15); the
-    fire search package (`/fire`) still waits for the user's test. Owner name sent as
+12. **Fire insurance:** search package and quotation list both
+    user-confirmed on UAT (2026-10-15/16). Not ported: 'ตกลงทำประกัน' →
+    InsuranceInfoPage1, the home-page fire dashboard preview and
+    FireLeadFollowUpPage. Owner name sent as
     `firstName lastName` (FF `profileFullName`), branch = launch `branchCode`
     (FF `profileBranch`). The FF search page nested `Expanded` in unbounded
     columns; the port lays each field out as label-above-box — compare with

@@ -19,7 +19,7 @@ results and look.
 | Search insurance package — EV | `/ev` | ported, user-tested on UAT |
 | Search insurance package — motorcycle | `/mc` | ported, user-tested on UAT |
 | Quotation list (InsuranceListPage) → detail (MakeInsuranceListPage) → quotation PDF (QuotationCopy) | `/quotations` | ported, user-tested on UAT |
-| Search insurance package — fire (ประกันอัคคีภัย): search → insurer list → detail → customer → quotation PDF | `/fire` | ported, E2E-tested in headless Chrome (save stubbed); awaiting user test |
+| Search insurance package — fire (ประกันอัคคีภัย): search → insurer list → detail → customer → quotation PDF | `/fire` | ported, user-tested on UAT |
 | Fire quotation list (fireInsuranceListPage) → detail (MakeFireInsuranceListPage) → quotation PDF (FireQuotationCopy) | `/fire/quotations` | ported, user-tested on UAT |
 | Manual request งานนอกเรท — create (SelectReason → form → photos → documents → insurers → submit) and edit photos ('แก้ไข') | `/manual/*` (from 'นอกเรท' / 'คัดลอก' / 'แก้ไข') | ported, user-tested on UAT (uploads, compression, see-image) |
 
@@ -198,8 +198,8 @@ Anonymous in `sawad-new-ibs` (photo uploads need it).
 
 ## Not yet verified end to end
 
-- Quotation save (needs a real token; creates real data) — motor/EV/MC and
-  fire (fire was tested with a stubbed save only).
+- Quotation save for motor / EV / MC (needs a real token; creates real
+  data). The fire save is user-tested.
 - Filter and compare pages (built, not click-tested).
 - Quotation PDF iframe inside the Android WebView.
 - Quotation detail: 'ดูกรมธรรม์' / 'ดู พ.ร.บ' (need an approved quotation).
