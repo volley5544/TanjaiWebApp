@@ -21,6 +21,7 @@ results and look.
 | Quotation list (InsuranceListPage) → detail (MakeInsuranceListPage) → quotation PDF (QuotationCopy) | `/quotations` | ported, user-tested on UAT |
 | Search insurance package — fire (ประกันอัคคีภัย): search → insurer list → detail → customer → quotation PDF | `/fire` | ported, user-tested on UAT |
 | Fire quotation list (fireInsuranceListPage) → detail (MakeFireInsuranceListPage) → quotation PDF (FireQuotationCopy) | `/fire/quotations` | ported, user-tested on UAT |
+| Request status / follow-up (LeadFollowUpPage, ติดตามประกันรถ): status counts → MakeInsuranceListPage → 'ทำประกัน' → request step 1 | `/follow-up` | ported, E2E-tested with stubbed data; awaiting user test |
 | Request policy (ทำคำขอ / in-package, 5 steps): customer → vehicle → photos → documents + payment type → payment (full / installment, QR) → issue → status / cancel — **auto work, motor / EV / MC** | `/request/*` (from add-customer 'ทำประกัน' and the quotation list) | ported, E2E-tested in headless Chrome with all APIs stubbed; awaiting user test |
 | Manual request งานนอกเรท — create (SelectReason → form → photos → documents → insurers → submit) and edit photos ('แก้ไข') | `/manual/*` (from 'นอกเรท' / 'คัดลอก' / 'แก้ไข') | ported, user-tested on UAT (uploads, compression, see-image) |
 
@@ -75,8 +76,10 @@ NonePackageSelectedInsurerPage, LicenseSelectComponent) open a placeholder
 
 ### Request policy — 5 steps (`/request/*`, FF `in_package_insurance`)
 
-- Entry: add-customer 'ทำประกัน' (motor / EV / MC) and the quotation-list
-  main button (auto: status → step 1, payment or status page). Ids live in
+- Entry: add-customer 'ทำประกัน' (motor / EV / MC), the quotation-list main
+  button and the follow-up page `/follow-up` (status tiles → list →
+  'ทำประกัน'; auto: status → step 1, payment or status page). Step 1's back
+  and the payment / status exits return to `/follow-up` (FF LeadFollowUpPage). Ids live in
   `PolicyRequestState`, never in the URL.
 - Step 1 `/request/customer` (+ `/request/address`), step 2 `/request/vehicle`
   (+ accessories / พ.ร.บ. / beneficiary / branch sub-pages), step 3

@@ -210,6 +210,33 @@ void main() {
     });
   });
 
+  group('lead follow-up', () {
+    test('LeadFollowUpResult reads counts and per-status lists', () {
+      final r = LeadFollowUpResult.fromJson({
+        'statusCode': 200,
+        'results': {
+          'statusCode': 200,
+          'total': 5,
+          'counting': {'status_waiting_info': 2, 'auto': '3', 'manual': 2},
+          'info': {
+            'watingInfo': [
+              {'quotation_id': 'Q1', 'lead_dtl_id': 11, 'quotation_type': 'auto'},
+              {'quotation_id': 'Q2', 'lead_dtl_id': '12'},
+            ],
+            'payments': [],
+          },
+        },
+      });
+      expect(r.total, 5);
+      expect(r.count('status_waiting_info'), 2);
+      expect(r.count('auto'), 3);
+      expect(r.count('status_refund'), isNull);
+      expect(r.list('watingInfo').map((e) => e.quotationId), ['Q1', 'Q2']);
+      expect(r.list('watingInfo')[1].leadDtlId, 12);
+      expect(r.list('refund'), isEmpty);
+    });
+  });
+
   group('fire insurance', () {
     test('number helpers match the FF custom functions', () {
       expect(showNumberWithCommaWithoutDot2('2500000'), '2,500,000');

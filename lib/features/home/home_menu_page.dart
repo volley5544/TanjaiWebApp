@@ -66,6 +66,7 @@ class HomeMenuPage extends StatelessWidget {
             tile(AppRoutes.fireSearch, Icons.cottage, 'ประกันอัคคีภัย'),
             tile(AppRoutes.fireQuotationList, Icons.list_alt, 'รายการ\nอัคคีภัย'),
             tile(AppRoutes.quotationList, Icons.list_alt, 'รายการ\nใบเสนอราคา'),
+            tile(AppRoutes.followUp, Icons.assignment_outlined, 'ติดตาม\nประกันรถ'),
           ],
         ),
       ),

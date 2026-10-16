@@ -28,6 +28,7 @@ import '../features/manual_request/create/select_reason_page.dart';
 import '../features/manual_request/edit/edit_pages.dart';
 import '../features/manual_request/result_page.dart';
 import '../features/quotation_list/detail/make_insurance_list_page.dart';
+import '../features/quotation_list/follow_up/lead_follow_up_page.dart';
 import '../features/quotation_list/detail/quotation_copy_page.dart';
 import '../features/quotation_list/list/quotation_list_page.dart';
 import '../features/search_package/compare/compare_page.dart';
@@ -65,6 +66,10 @@ abstract final class AppRoutes {
   static const quotationList = '/quotations';
   static const quotationDetail = '/quotations/detail';
   static const quotationCopy = '/quotations/pdf';
+
+  /// FF LeadFollowUpPage (ติดตามประกันรถ) — request-status counts; tiles open
+  /// [quotationDetail].
+  static const followUp = '/follow-up';
 
   /// Manual (none-package) request: create flow, result pages, edit flow.
   /// Flow data in `NonePackageState`.
@@ -136,6 +141,7 @@ final GoRouter appRouter = GoRouter(
     // page, whose open resets the flow state.
     // Request-policy flow — flat, before `/:product/…` (`/request/customer`
     // would match `/:product/customer`).
+    GoRoute(path: AppRoutes.followUp, builder: (context, state) => const LeadFollowUpPage()),
     GoRoute(path: AppRoutes.requestCustomer, builder: (context, state) => const CustomerInfoPage()),
     GoRoute(path: AppRoutes.requestAddress, builder: (context, state) => const AddAddressPage()),
     GoRoute(path: AppRoutes.requestVehicle, builder: (context, state) => const VehicleInfoPage()),

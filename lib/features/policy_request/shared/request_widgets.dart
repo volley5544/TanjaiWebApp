@@ -546,13 +546,13 @@ Future<bool> requestCheck(BuildContext context, {required int statusCode, requir
   return true;
 }
 
-/// Leaves the flow to the work list (user, 2026-10-16: FF P1 back went to
-/// LeadFollowUpPage and P5 used the bottom nav; neither is ported — the
-/// quotation list is the nearest ported list).
+/// Leaves the flow: FF P1's back → LeadFollowUpPage (fire →
+/// FireLeadFollowUpPage, not ported → fire quotation list). Also used as the
+/// exit of P4_2 / P5, which in FF had only the bottom nav (user, 2026-10-16).
 void leaveRequestFlow(BuildContext context) {
   final fire = PolicyRequestState.instance.fromPage == 'FireInsurance' ||
       PolicyRequestState.instance.variant.product == RequestProduct.house;
-  context.go(fire ? AppRoutes.fireQuotationList : AppRoutes.quotationList);
+  context.go(fire ? AppRoutes.fireQuotationList : AppRoutes.followUp);
 }
 
 /// Redirects to the quotation list when a step page is opened without an

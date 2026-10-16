@@ -15,6 +15,7 @@ import '../list/quotation_list_page.dart';
 import '../models/lead_detail_item.dart';
 import '../state/quotation_list_state.dart';
 import 'history_sheet.dart';
+import 'payment_status_filter_sheet.dart';
 
 /// Port of FF `MakeInsuranceListPage` as the quotation list's 'ทำประกัน'
 /// opens it: `list` = `get-lead-by-id` `watingInfo`, `checkTotal` =
@@ -27,9 +28,10 @@ import 'history_sheet.dart';
 /// 'ดูรายละเอียด' button, whose targets (InsuranceInfoPage1 / 42 / 5,
 /// NonePackageSelectedInsurerPage) aren't ported yet.
 ///
-/// Not reachable from the list, so not ported: the `checkPayment == '1'`
-/// filter / legend (MakeInsuranceTypeColor), the `fromPage: 'FollowUpPage'`
-/// back target, and the FutureBuilder on Firestore `disable_work_weekend`
+/// Also opened from the follow-up page (`fromPage: 'FollowUpPage'` → back goes
+/// there; 'รายการลูกค้าชำระเงิน' passes `checkPayment: '1'`, which adds the
+/// payment-status filter (MakeInsuranceTypeColor) icons and card colours).
+/// Not ported: the FutureBuilder on Firestore `disable_work_weekend`
 /// (its value was only read by an empty `if`).
 class MakeInsuranceListPage extends StatefulWidget {
   const MakeInsuranceListPage({super.key});
@@ -64,6 +66,11 @@ class _MakeInsuranceListPageState extends State<MakeInsuranceListPage> {
   }
 
   void _back() {
+    // FF: fromPage 'FollowUpPage' → goNamed(LeadFollowUpPage).
+    if (_state.fromPage == 'FollowUpPage') {
+      context.go(AppRoutes.followUp);
+      return;
+    }
     if (context.canPop()) {
       context.pop();
     } else {
@@ -188,62 +195,77 @@ class _MakeInsuranceListPageState extends State<MakeInsuranceListPage> {
   @override
   Widget build(BuildContext context) {
     final items = _state.detailItems ?? const <LeadDetailItem>[];
-    return UnfocusOnTap(
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        appBar: tanjaiAppBar(
-          title: _state.checkVmi == '0' ? 'รายการ' : 'รายการกรมธรรม์เดือนปัจจุบัน',
-          titleColor: const Color(0xFF003063),
-          backColor: const Color(0xFFD9761A),
-          onBack: _back,
-        ),
-        body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 15),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 0, 12, 5),
-                      child: Text('ค้นหาชื่อลูกค้า', style: AppText.style(fontSize: 15)),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: SearchNameBox(controller: _search),
-                    ),
-                  ],
+    final payment = _state.checkPayment == '1';
+    Widget filterButton(IconData icon) => Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: IconButton(
+        icon: Icon(icon, color: AppColors.brandOrange, size: 30),
+        onPressed: () => PaymentStatusFilterSheet.show(context),
+      ),
+    );
+    return ListenableBuilder(
+      listenable: _state,
+      builder: (context, _) => UnfocusOnTap(
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          appBar: tanjaiAppBar(
+            title: _state.checkVmi == '0' ? 'รายการ' : 'รายการกรมธรรม์เดือนปัจจุบัน',
+            titleColor: const Color(0xFF003063),
+            backColor: const Color(0xFFD9761A),
+            onBack: _back,
+            actions: [if (payment) filterButton(Icons.filter_alt_outlined)],
+          ),
+          body: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 15),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(24, 0, 12, 5),
+                            child: Text('ค้นหาชื่อลูกค้า', style: AppText.style(fontSize: 15)),
+                          ),
+                          if (payment) filterButton(Icons.calendar_month_sharp),
+                        ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: SearchNameBox(controller: _search),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Expanded(
-                // FF: `checkTotal != 0` (null counts as non-zero) → list.
-                child: _state.checkTotal != 0
-                    ? Padding(
-                        padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: AppColors.secondaryBackground,
-                            borderRadius: BorderRadius.circular(8),
+                Expanded(
+                  // FF: `checkTotal != 0` (null counts as non-zero) → list.
+                  child: _state.checkTotal != 0
+                      ? Padding(
+                          padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: AppColors.secondaryBackground,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: ListView.builder(
+                              padding: const EdgeInsets.only(bottom: 50),
+                              itemCount: items.length,
+                              itemBuilder: (context, i) {
+                                final item = items[i];
+                                if (!_visible(item)) return const SizedBox.shrink();
+                                return Padding(padding: const EdgeInsets.only(bottom: 16), child: _card(item));
+                              },
+                            ),
                           ),
-                          child: ListView.builder(
-                            padding: const EdgeInsets.only(bottom: 50),
-                            itemCount: items.length,
-                            itemBuilder: (context, i) {
-                              final item = items[i];
-                              if (!_visible(item)) return const SizedBox.shrink();
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 16),
-                                child: _card(item),
-                              );
-                            },
-                          ),
-                        ),
-                      )
-                    : const Center(child: NoDataBox()),
-              ),
-            ],
+                        )
+                      : const Center(child: NoDataBox()),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -319,15 +341,17 @@ class _MakeInsuranceListPageState extends State<MakeInsuranceListPage> {
   Widget _details(LeadDetailItem item) {
     final label = AppText.style(fontSize: 13);
     Widget row(String l, String v, {double bottom = 0}) => Padding(
-          padding: EdgeInsets.only(bottom: bottom),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(l, style: label),
-              Flexible(child: Text(v, textAlign: TextAlign.end, style: label)),
-            ],
+      padding: EdgeInsets.only(bottom: bottom),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(l, style: label),
+          Flexible(
+            child: Text(v, textAlign: TextAlign.end, style: label),
           ),
-        );
+        ],
+      ),
+    );
     final rejected = checkNullValueAndReturn(item.insurerStatus) == 'ปฏิเสธ';
     final remark = checkNullValueAndReturn(item.insurerRemark);
     final insurerRejected = item.isManual && rejected;
@@ -335,15 +359,16 @@ class _MakeInsuranceListPageState extends State<MakeInsuranceListPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(item.insurerName,
-            style: AppText.style(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF1D4774))),
+        Text(
+          item.insurerName,
+          style: AppText.style(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF1D4774)),
+        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('ชื่อ', style: label),
             Flexible(
-              child: Text('${item.firstName} ${item.lastName}',
-                  maxLines: 2, textAlign: TextAlign.end, style: label),
+              child: Text('${item.firstName} ${item.lastName}', maxLines: 2, textAlign: TextAlign.end, style: label),
             ),
           ],
         ),
@@ -351,8 +376,7 @@ class _MakeInsuranceListPageState extends State<MakeInsuranceListPage> {
         if (!(item.quotationTypeName == 'งานนอกเรท' || item.isCmi))
           row('ทุนประกัน', item.sumInsured != '' ? item.sumInsured : '-'),
         if (item.isCmi)
-          row('ราคาเบี้ยอากรและภาษีรวมเงิน',
-              item.actTotal != '' ? _orDash(showNumberWithComma(item.actTotal)) : '-'),
+          row('ราคาเบี้ยอากรและภาษีรวมเงิน', item.actTotal != '' ? _orDash(showNumberWithComma(item.actTotal)) : '-'),
         if (!item.isCmi) row('ประเภทซ่อม', item.garageTypeName),
         Row(
           children: [
@@ -396,8 +420,13 @@ class _MakeInsuranceListPageState extends State<MakeInsuranceListPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                _button('เงื่อนไข บ.ประกัน', const Color(0xFFCC0000), () => showAlert(context, remark),
-                    fontSize: 15, borderColor: Colors.transparent),
+                _button(
+                  'เงื่อนไข บ.ประกัน',
+                  const Color(0xFFCC0000),
+                  () => showAlert(context, remark),
+                  fontSize: 15,
+                  borderColor: Colors.transparent,
+                ),
               ],
             ),
           ),
@@ -439,8 +468,7 @@ class _MakeInsuranceListPageState extends State<MakeInsuranceListPage> {
   }
 
   /// FF h40 w115 radius-15 buttons, white 13 w500 text.
-  Widget _button(String text, Color color, VoidCallback onPressed,
-      {double fontSize = 13, Color? borderColor}) {
+  Widget _button(String text, Color color, VoidCallback onPressed, {double fontSize = 13, Color? borderColor}) {
     return AppButton(
       text: text,
       onPressed: onPressed,

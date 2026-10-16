@@ -70,6 +70,14 @@ current state, rules, conventions, and what's open.
   `/api/user-profile` + `/api/insurance/license-insurance-broker` (not launch
   params); P1 back / P5 / P4_2 exits → quotation list. Not ported: manual /
   renew / CMI / fire branches, page 3_1, CMI 'บันทึก พ.ร.บ.', 'การ์ดค่างวด'.
+- **Feature 7 — request status page (FF LeadFollowUpPage, `/follow-up`,
+  'ติดตามประกันรถ'): ported, on `uat`, E2E-tested with stubbed data
+  (2026-10-16); waiting for the user's test.** `get-lead-list` with
+  `list: 'list'` → `LeadFollowUpResult` (counts + per-status lists); 12 tiles,
+  10 open MakeInsuranceListPage (`fromPage: 'FollowUpPage'` → its back
+  returns to `/follow-up`; 'รายการลูกค้าชำระเงิน' = `checkPayment '1'` → the
+  ค้นหาสถานะ payment filter sheet, FF MakeInsuranceTypeColor). Request-flow
+  exits (`leaveRequestFlow`) now go to `/follow-up` (fire → fire list).
 - The next feature will be named by the user — wait for it.
 - Live UAT: https://sawad-new-ibs-uat.web.app (`/motor`, `/ev`, `/mc`,
   `/fire`, `/quotations`; manual flows are reached from those pages).

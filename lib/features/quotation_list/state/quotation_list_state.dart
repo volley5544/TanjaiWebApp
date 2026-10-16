@@ -21,6 +21,10 @@ class QuotationListState extends ChangeNotifier {
   String checkPayment = '0';
   String checkVmi = '0';
 
+  /// MakeInsuranceListPage `fromPage`: 'FollowUpPage' → back goes to the
+  /// follow-up page; '' → pop.
+  String fromPage = '';
+
   /// FFAppState().searchQuotationStatus (reset to `'0'` when the page opens;
   /// only the dashboard entry point's filter ever changes it).
   String searchQuotationStatus = '0';
@@ -33,11 +37,13 @@ class QuotationListState extends ChangeNotifier {
     required int? checkTotal,
     String checkPayment = '0',
     String checkVmi = '0',
+    String fromPage = '',
   }) {
     detailItems = items;
     this.checkTotal = checkTotal;
     this.checkPayment = checkPayment;
     this.checkVmi = checkVmi;
+    this.fromPage = fromPage;
     notifyListeners();
   }
 

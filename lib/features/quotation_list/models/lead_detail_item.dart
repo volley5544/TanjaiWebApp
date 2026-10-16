@@ -93,3 +93,44 @@ class LeadByIdResult {
     );
   }
 }
+
+/// `get-lead-list` with `list: 'list'` (FF LeadFollowUpPage,
+/// `InsuranceRequestListAPICall`): `results.total`, `results.counting.*` and
+/// the per-status card lists `results.info.<key>`.
+class LeadFollowUpResult {
+  const LeadFollowUpResult({required this.total, required this.counts, required this.lists});
+
+  /// `$.results.total`.
+  final int? total;
+
+  /// `$.results.counting.<key>` (e.g. `status_waiting_info`, `auto`, `manual`).
+  final Map<String, int?> counts;
+
+  /// `$.results.info.<key>` (e.g. `watingInfo`, `waitingCar`, `payments`).
+  final Map<String, List<LeadDetailItem>> lists;
+
+  int? count(String key) => counts[key];
+  List<LeadDetailItem> list(String key) => lists[key] ?? const [];
+
+  static LeadFollowUpResult fromJson(dynamic json) {
+    final results = jsonAt(json, 'results');
+    final counting = jsonAt(results, 'counting');
+    final info = jsonAt(results, 'info');
+    return LeadFollowUpResult(
+      total: jsonInt(jsonAt(results, 'total')),
+      counts: {
+        if (counting is Map)
+          for (final e in counting.entries) '${e.key}': jsonInt(e.value),
+      },
+      lists: {
+        if (info is Map)
+          for (final e in info.entries)
+            if (e.value is List)
+              '${e.key}': [
+                for (final x in e.value as List)
+                  if (x is Map) LeadDetailItem.fromJson(Map<String, dynamic>.from(x)),
+              ],
+      },
+    );
+  }
+}

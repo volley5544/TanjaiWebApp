@@ -58,6 +58,14 @@ class LeadApi {
         QuotationLeadList.fromJson,
       );
 
+  /// InsuranceRequestListAPICall with `list: 'list'` — FF LeadFollowUpPage
+  /// (counts + per-status lists).
+  Future<LeadApiResult<LeadFollowUpResult>> getLeadFollowUp() => _post(
+        '$_base/api/lead/get-lead-list',
+        {'owner_id': UserSession.instance.employeeId, 'mode': 'arunsawad', 'list': 'list'},
+        LeadFollowUpResult.fromJson,
+      );
+
   /// InsuranceRequestListAPIDashBoardCall (`/api/lead/get-lead-by-id`).
   /// 'ทำประกัน' sends `list: FFAppState().typeList` (always `'list'`) and
   /// leaves `search_by` / `search` at their `''` defaults.
