@@ -46,6 +46,7 @@ dependencies:
     sdk: flutter
   image_picker: ^1.2.4
   lottie: ^3.6.1
+  qr_flutter: 4.1.0
 
 dev_dependencies:
   flutter_test:
@@ -68,6 +69,7 @@ flutter:
   assets:
     - assets/images/
     - assets/images/fire/
+    - assets/images/request/
     - assets/lottie/
 
   # Bundled (not fetched from Google Fonts at runtime) so the app works under a
