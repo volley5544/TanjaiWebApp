@@ -72,7 +72,11 @@ current state, rules, conventions, and what's open.
   user's first UAT test (2026-10-30): MC step 2 now requires 'ปีที่ผลิต ค.ศ.'
   (FF branch B skipped it); chassis / engine fields clean the text while
   typing (uppercase, A–Z 0–9 .) instead of FF's overlay preview, whose
-  caret drifted from the shown text. Not ported: manual /
+  caret drifted from the shown text. Payment page in 'เตรียมข้อมูล'
+  shows the 4.1 save result (`step4.lastSave` → `PaymentData.applyStep4Save`:
+  type / channel / totals / tenor list), like FF's app-state hand-off — the
+  detail has no payment yet, so the tenor picker was hidden while 'บันทึก'
+  demanded a tenor; without a 4.1 result it calculates the tenors. Not ported: manual /
   renew / CMI / fire branches, page 3_1, CMI 'บันทึก พ.ร.บ.', 'การ์ดค่างวด'.
 - **Feature 7 — request status page (FF LeadFollowUpPage, `/follow-up`,
   'ติดตามประกันรถ'): ported, on `uat`, E2E-tested with stubbed data
@@ -102,7 +106,8 @@ current state, rules, conventions, and what's open.
   - `f950ff8` EV off-rate from work-select opens workType 'ev'
   - `1077b61` request-policy foundation; `9511886` the five steps
   - `c1e9981` request status page (`/follow-up`)
-  - step 2 fixes: MC production year required, chassis / engine caret
+  - `b2932c9` step 2 fixes: MC production year required, chassis / engine caret
+  - payment page: 4.1 save result in 'เตรียมข้อมูล' (installment tenor picker)
 - JS bridge to the host app: **not started** ("do nothing yet"). Launch params
   are the interim hand-off.
 

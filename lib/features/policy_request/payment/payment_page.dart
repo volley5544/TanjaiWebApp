@@ -78,10 +78,17 @@ class _PaymentPageState extends State<PaymentPage> {
       await showAlert(context, !r.isHttpOk ? 'พบข้อผิดพลาด (${r.statusCode})' : (r.message ?? ''));
       return;
     }
+    final step4Save = _state.step4.lastSave;
     _state.applyDetail(ApplicationDetail(r.json, leadDtlId: _state.leadDtlId));
+    // FF: 'เตรียมข้อมูล' stops here and shows the 4.1 save result.
+    if (_p.isPreparing && step4Save != null) _p.applyStep4Save(step4Save);
 
-    // FF: 'เตรียมข้อมูล' stops here; full payment needs no calculation.
-    if (!_p.isPreparing && !_p.isFullPayment) {
+    // Full payment needs no calculation. FF never calculated in
+    // 'เตรียมข้อมูล'; the port also does when an instalment plan has no
+    // tenor list (page opened without coming from 4.1), else the picker
+    // would be empty.
+    final needsCalc = _p.isPreparing ? _p.isInstallment && _p.installments.isEmpty : !_p.isFullPayment;
+    if (needsCalc) {
       final c = await _api.calculateInstallment(
         workType: _p.workType,
         actFlg: _p.actFlag,

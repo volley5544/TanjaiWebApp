@@ -1,5 +1,6 @@
 import '../data/policy_request_api.dart';
 import '../models/application_detail.dart';
+import '../step4/step4_data.dart';
 
 /// One tenor option of `IbsCalculateInstallmentCall`
 /// (`$.results.data.calculate.installment[:]`).
@@ -34,8 +35,12 @@ class InstallmentOption {
   /// FF `tenorFirstDueDefault.first` (empty list → '' instead of FF's crash).
   String get defaultTenorFirstDue => tenorFirstDueDefault.isEmpty ? '' : tenorFirstDueDefault.first;
 
-  static List<InstallmentOption> listFrom(dynamic json) {
-    final list = jsonPathGet(json, 'results.data.calculate.installment');
+  static List<InstallmentOption> listFrom(dynamic json) => fromList(jsonPathGet(json, 'results.data.calculate.installment'));
+
+  /// Items of a calc `installment[]` or of the step-4 save's
+  /// `payment.installment[]` (same shape — FF read both into
+  /// InstallmentDataType).
+  static List<InstallmentOption> fromList(dynamic list) {
     String s(Map m, String k) => m[k] == null ? '' : '${m[k]}';
     List<String> l(Map m, String k) => [
           if (m[k] is List)
@@ -252,6 +257,23 @@ class PaymentData {
     paymentStatus = ApplicationDetail.sOf(d.payment, 'payment_status');
     checkSavePaymentBtn = true;
     tenorFirstDueFromApi = ApplicationDetail.sOf(_first(d.at('app_installment')), 'tenor_first_due');
+  }
+
+  /// FF HR41 → P4_2 hand-off: while the status is 'เตรียมข้อมูล' FF page 4.2
+  /// stopped its on-load and showed what the 4.1 save had written to app
+  /// state (payment type / channel / status, totals and — for 'ผ่อนชำระ' —
+  /// the tenor list). The detail has no payment yet at that point, so
+  /// without this the 'ระบุงวด' picker stayed hidden while 'บันทึก' still
+  /// demanded a tenor (user, 2026-10-30).
+  void applyStep4Save(Step4SaveResult r) {
+    netPremiumTotal = r.netPremiumTotal;
+    grossTotal = r.grossTotalNet;
+    actTotal = r.actTotal;
+    paymentChannel = r.paymentChannel;
+    paymentType = r.paymentType;
+    paymentStatus = r.paymentStatus;
+    if (r.status.isNotEmpty) status = r.status;
+    if (r.paymentType == 'ผ่อนชำระ') applyInstallments(InstallmentOption.fromList(r.installments));
   }
 
   /// P4_2 §3.10 — stores the calc result and the advance-tenor list of the

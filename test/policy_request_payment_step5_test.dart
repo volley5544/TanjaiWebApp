@@ -4,6 +4,7 @@ import 'package:tanjai_web_app/features/policy_request/models/request_variant.da
 import 'package:tanjai_web_app/features/policy_request/payment/effective_date_picker.dart';
 import 'package:tanjai_web_app/features/policy_request/payment/payment_data.dart';
 import 'package:tanjai_web_app/features/policy_request/payment/payment_rules.dart';
+import 'package:tanjai_web_app/features/policy_request/step4/step4_data.dart';
 import 'package:tanjai_web_app/features/policy_request/step5/step5_data.dart';
 import 'package:tanjai_web_app/features/policy_request/step5/step5_rules.dart';
 import 'package:tanjai_web_app/features/search_package/product_type.dart';
@@ -74,6 +75,38 @@ Map<String, dynamic> _detail({
     };
 
 void main() {
+  test('step-4 save result fills the payment page in เตรียมข้อมูล (installment)', () {
+    final p = PaymentData()..status = 'เตรียมข้อมูล';
+    p.applyStep4Save(Step4SaveResult.fromJson({
+      'results': {
+        'data': {
+          'payment': {
+            'payment_type': 'ผ่อนชำระ',
+            'payment_channel': 'QR',
+            'gross_total_net': 2800,
+            'installment': [
+              {
+                'tenor': '3',
+                'installment_first_due': 1000,
+                'installment_last_due': 800,
+                'tenor_first_due': ['1', '2'],
+                'tenor_first_due_default': ['2'],
+              },
+            ],
+          },
+        },
+      },
+    }));
+    expect(p.isInstallment, isTrue);
+    expect(p.isPreparing, isTrue);
+    expect(p.paymentChannel, 'QR');
+    expect(p.grossTotal, '2800');
+    expect(p.installments.single.tenor, '3');
+    p.selectInstallment(0);
+    expect(p.selectTenor, '3');
+    expect(p.tenorOverSelect, '2');
+  });
+
   group('PaymentData', () {
     test('loads payment fields from the detail (null → empty)', () {
       final p = PaymentData()..loadFromDetail(ApplicationDetail(_detail(tenor: null), leadDtlId: 7));
