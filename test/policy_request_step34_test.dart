@@ -180,7 +180,7 @@ void main() {
       expect(f['image_bluebook'], '');
     });
 
-    test('MC → renew button: blue book required but sent "" (FF)', () {
+    test('MC → renew button: blue book required and sent', () {
       final r = Step3Rules.of(_mc);
       final d = _filled(sub: 'MC')..bluebook = '';
       expect(r.saveKind(d), Step3SaveKind.renew);
@@ -191,7 +191,7 @@ void main() {
       expect(r.validate(d, _allConsents()), isNull);
       final f = r.saveFields(d, _allConsents(), quotationId: 'Q', leadDtlId: '8');
       expect(f['sub_product'], 'MC');
-      expect(f['image_bluebook'], '');
+      expect(f['image_bluebook'], 'https://x/b');
       expect(f['image_idcard'], 'https://x/i');
     });
 

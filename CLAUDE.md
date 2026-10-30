@@ -107,7 +107,8 @@ current state, rules, conventions, and what's open.
   - `1077b61` request-policy foundation; `9511886` the five steps
   - `c1e9981` request status page (`/follow-up`)
   - `b2932c9` step 2 fixes: MC production year required, chassis / engine caret
-  - payment page: 4.1 save result in 'เตรียมข้อมูล' (installment tenor picker)
+  - `3143d32` payment page: 4.1 save result in 'เตรียมข้อมูล' (installment tenor picker)
+  - step 3: MC sends the blue book photo
 - JS bridge to the host app: **not started** ("do nothing yet"). Launch params
   are the interim hand-off.
 
@@ -382,8 +383,8 @@ GitHub PAT — never paste tokens into the chat.
     the phone. Fire quotation list / follow-up / policy pages are not ported.
 13. **Request policy (5 steps):** needs the user's real test on UAT (draft
     saves, payment save / QR regenerate, issue_policy, cancel all write real
-    data). Questions from the port: MC blue book is required but FF sends
-    `image_bluebook` ''; MC ชั้น 1 shows the 9-photo map but never requires or
+    data). MC blue book: FF required it but sent `image_bluebook` '' — now
+    sent (user, 2026-10-30). Questions from the port: MC ชั้น 1 shows the 9-photo map but never requires or
     sends it; non-ชั้น-1 covers can be blocked by the old-policy check whose
     row is hidden (all kept as FF, one flag each in the rules classes); an
     https URL for 'การ์ดค่างวด' (FF uses http — hidden on web); QR payload kept

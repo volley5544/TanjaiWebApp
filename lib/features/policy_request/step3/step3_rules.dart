@@ -198,10 +198,11 @@ class McStep3Rules extends Step3Rules {
   @override
   bool get renewRequiresBluebook => true;
 
-  /// FF quirk kept: MC requires the blue book but sends `image_bluebook` ""
-  /// (FF sent it only for CMI) — open question for the user.
+  /// FF required the blue book for MC but sent `image_bluebook` "" (only
+  /// CMI sent it), so the photo was lost on the next visit — sent here
+  /// (user, 2026-10-30).
   @override
-  bool get renewSendsBluebook => false;
+  bool get renewSendsBluebook => true;
 }
 
 /// Stand-alone พ.ร.บ. (sub_product 'CMI') — not reachable in the web port
@@ -212,9 +213,6 @@ class CmiStep3Rules extends McStep3Rules {
 
   @override
   bool showsInspection(Step3Data d) => false;
-
-  @override
-  bool get renewSendsBluebook => true;
 
   @override
   bool get nextSavesStep4 => true;

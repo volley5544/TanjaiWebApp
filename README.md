@@ -98,6 +98,8 @@ NonePackageSelectedInsurerPage, LicenseSelectComponent) open a placeholder
   engine numbers are cleaned while typing (uppercase, only A–Z 0–9 .).
 - Payment page in 'เตรียมข้อมูล': shows the payment type, channel, totals and
   tenor list returned by the 4.1 save (as the mobile app does).
+- Step 3 (MC): the blue book photo is saved with the step (the mobile app
+  required it but sent it empty).
 - Structure: one set of step pages; every product / work-type difference is in
   a per-step rules class (`stepN_rules.dart`: Motor / EV / MC …), so a change
   for one product or work type touches only its class.
