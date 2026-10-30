@@ -94,6 +94,8 @@ NonePackageSelectedInsurerPage, LicenseSelectComponent) open a placeholder
   licence, loaded once per session).
 - Firestore (UAT copied from prod, config only): `dataList`, `urlLinkStorage`,
   `effectiveDayConfig`, `role_menu`, `InsurerConfig2`.
+- Step 2: 'ปีที่ผลิต ค.ศ.' is required for every product (MC too); chassis /
+  engine numbers are cleaned while typing (uppercase, only A–Z 0–9 .).
 - Structure: one set of step pages; every product / work-type difference is in
   a per-step rules class (`stepN_rules.dart`: Motor / EV / MC …), so a change
   for one product or work type touches only its class.

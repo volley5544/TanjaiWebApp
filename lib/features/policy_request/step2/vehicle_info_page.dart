@@ -577,27 +577,26 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
         ),
       );
 
-  /// FF chassis / engine field: the typed text is transparent and a live
-  /// preview of `removeDatAndMakeUpperCase(text)` is drawn over it.
+  /// FF chassis / engine field: FF drew a live `removeDatAndMakeUpperCase`
+  /// preview over a transparent field, so the caret drifted from the shown
+  /// text (user, 2026-10-30). The port cleans the text as it is typed, so
+  /// the field shows exactly what is saved.
   Widget _upperPreviewField(TextEditingController c, String hint) {
     return RequestBox(
-      child: Stack(
-        alignment: Alignment.centerLeft,
-        children: [
-          TextField(
-            controller: c,
-            onChanged: (_) => setState(() {}),
-            cursorColor: Colors.black,
-            style: AppText.style(fontSize: 15, color: const Color(0x00101213)),
-            decoration: _decoration(hint),
-          ),
-          IgnorePointer(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 10),
-              child: Text(removeDatAndMakeUpperCase(c.text), style: AppText.style(fontSize: 15, color: Colors.black)),
-            ),
-          ),
+      child: TextField(
+        controller: c,
+        cursorColor: Colors.black,
+        inputFormatters: [
+          TextInputFormatter.withFunction((_, v) {
+            final t = removeDatAndMakeUpperCase(v.text);
+            if (t == v.text) return v;
+            // Keep the caret after the same cleaned characters.
+            final before = removeDatAndMakeUpperCase(v.text.substring(0, v.selection.end.clamp(0, v.text.length)));
+            return TextEditingValue(text: t, selection: TextSelection.collapsed(offset: before.length));
+          }),
         ],
+        style: AppText.style(fontSize: 15, color: Colors.black),
+        decoration: _decoration(hint),
       ),
     );
   }

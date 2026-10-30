@@ -224,13 +224,15 @@ void main() {
       expect(r.validateSave(d, ok, branchRequired: false), isNull);
     });
 
-    test('MC: no accessory / พ.ร.บ. / production year / numeric size checks', () {
+    test('MC: no accessory / พ.ร.บ. / numeric size checks; production year required', () {
       final r = Step2Rules.of(mc);
       final d = loaded()
         ..accessoryProtect = ''
         ..actOfLegislation = ''
         ..productYear = '';
       const f = Step2Form(plate: 'a', chassis: 'b', engine: 'c', seats: '2', size: 'abc', weight: '100');
+      expect(r.validateSave(d, f, branchRequired: false), 'กรุณาเลือกปีที่ผลิต');
+      d.productYear = '2020';
       expect(r.validateSave(d, f, branchRequired: false), isNull);
       expect(r.validateSave(d..beneficiaryName = '', f, branchRequired: false), 'บังคับเลือกผู้รับผลประโยชน์');
     });

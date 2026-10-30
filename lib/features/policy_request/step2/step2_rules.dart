@@ -119,11 +119,11 @@ class MotorStep2Rules implements Step2Rules {
   }
 
   /// Plate length, province, usage, registration year (FF tail of A / B).
-  String? validateTail(Step2Data d, Step2Form f, {bool checkProductYear = true}) {
+  String? validateTail(Step2Data d, Step2Form f) {
     if (f.plate.length > 10) return 'ทะเบียนรถเกิน 10 ตัว กรุณากรอกใหม่';
     // FF: the default 'กรุณาเลือกปีผลิต' passed this check and was sent as
     // make_year; the port keeps an unset year as '' so it is caught here.
-    if (checkProductYear && d.productYear.isEmpty) return 'กรุณาเลือกปีที่ผลิต';
+    if (d.productYear.isEmpty) return 'กรุณาเลือกปีที่ผลิต';
     if (d.provinceName.isEmpty) return 'กรุณาเลือกจังหวัดที่จดทะเบียน';
     if (d.vehicleUsage.isEmpty) return 'กรุณาเลือกลักษณะการใช้รถ';
     if (d.regisYear.isEmpty) return 'กรุณากรอกปีจดทะเบียน';
@@ -275,14 +275,16 @@ class McStep2Rules extends MotorStep2Rules {
   bool get showsAct => false;
 
   /// FF branch B: size only required (no number / range check, no truck
-  /// exception); no accessory / พ.ร.บ. / production-year checks.
+  /// exception); no accessory / พ.ร.บ. checks. FF also skipped the production
+  /// year, so an unset 'ปีที่ผลิต ค.ศ.' (shown as บังคับกรอก) could be saved —
+  /// required here (user, 2026-10-30).
   @override
   String? validateSave(Step2Data d, Step2Form f, {required bool branchRequired}) {
     return validateHead(d, f, branchRequired: branchRequired) ??
         (f.size.isEmpty ? 'บังคับกรอกขนาด' : null) ??
         (f.weight.isEmpty ? 'บังคับกรอกน้ำหนัก' : null) ??
         (d.beneficiaryName.isEmpty ? 'บังคับเลือกผู้รับผลประโยชน์' : null) ??
-        validateTail(d, f, checkProductYear: false);
+        validateTail(d, f);
   }
 
   /// FF: `accessory_flg` is '0' for MC.

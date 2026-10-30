@@ -68,7 +68,11 @@ current state, rules, conventions, and what's open.
   `dataList`, `urlLinkStorage`, `effectiveDayConfig`, `role_menu` copied
   prod → UAT; writes stubbed in tests (user tests real); employee profile from
   `/api/user-profile` + `/api/insurance/license-insurance-broker` (not launch
-  params); P1 back / P5 / P4_2 exits → quotation list. Not ported: manual /
+  params); P1 back / P5 / P4_2 exits → quotation list. Fixes from the
+  user's first UAT test (2026-10-30): MC step 2 now requires 'ปีที่ผลิต ค.ศ.'
+  (FF branch B skipped it); chassis / engine fields clean the text while
+  typing (uppercase, A–Z 0–9 .) instead of FF's overlay preview, whose
+  caret drifted from the shown text. Not ported: manual /
   renew / CMI / fire branches, page 3_1, CMI 'บันทึก พ.ร.บ.', 'การ์ดค่างวด'.
 - **Feature 7 — request status page (FF LeadFollowUpPage, `/follow-up`,
   'ติดตามประกันรถ'): ported, on `uat`, E2E-tested with stubbed data
@@ -97,6 +101,8 @@ current state, rules, conventions, and what's open.
   - `a12051e` port of the fire quotation list (list → detail → PDF)
   - `f950ff8` EV off-rate from work-select opens workType 'ev'
   - `1077b61` request-policy foundation; `9511886` the five steps
+  - `c1e9981` request status page (`/follow-up`)
+  - step 2 fixes: MC production year required, chassis / engine caret
 - JS bridge to the host app: **not started** ("do nothing yet"). Launch params
   are the interim hand-off.
 
